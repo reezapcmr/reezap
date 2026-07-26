@@ -79,29 +79,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Reezap — Local discovery for Cameroon's South West" },
+      { title: "Reezap — Discover vendors near you in the South West" },
       {
         name: "description",
         content:
-          "Reezap connects buyers with local vendors around Buea, Limbe, Kumba and beyond. Browse, follow and order on WhatsApp.",
+          "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
       },
       { name: "author", content: "Reezap" },
       { name: "theme-color", content: "#0B0B0B" },
-      { property: "og:title", content: "Reezap — Local discovery for Cameroon's South West" },
+      { property: "og:title", content: "Reezap — Discover vendors near you in the South West" },
       {
         property: "og:description",
-        content: "Discover vendors near you and order directly on WhatsApp.",
+        content: "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Reezap — Discover vendors near you in the South West" },
+      { name: "twitter:description", content: "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/51c09e83-827d-4f42-9cc3-5266fec74406" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/51c09e83-827d-4f42-9cc3-5266fec74406" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.jpg", type: "image/jpeg" },
+      { rel: "icon", href: "/favicon.jpg", type: "image/x-icon" },
       { rel: "apple-touch-icon", href: "/favicon.jpg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },

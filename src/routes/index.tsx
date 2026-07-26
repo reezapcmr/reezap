@@ -18,11 +18,11 @@ export const Route = createFileRoute("/")({
         content:
           "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
       },
-      { property: "og:title", content: "Reezap — Discover vendors near you" },
+      { property: "og:title", content: "Reezap — Discover vendors near you in the South West" },
       {
         property: "og:description",
         content:
-          "Local discovery for Cameroon's South West Region. Browse what's on sale near you and order on WhatsApp.",
+          "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
       },
     ],
   }),
