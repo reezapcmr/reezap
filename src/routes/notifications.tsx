@@ -40,7 +40,7 @@ function NotificationsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("notifications")
-        .select("id,type,title,body,listing_id,is_read,created_at")
+        .select("id,kind,title,body,listing_id,is_read,created_at")
         .order("created_at", { ascending: false })
         .limit(50);
       return data ?? [];
