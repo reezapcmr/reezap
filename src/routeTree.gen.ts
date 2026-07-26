@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as NotificationsRouteImport } from './routes/notifications'
@@ -21,6 +22,11 @@ import { Route as ListingIdRouteImport } from './routes/listing.$id'
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SavedRoute = SavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof NotificationsRoute
   '/post': typeof PostRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof NotificationsRoute
   '/post': typeof PostRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/notifications': typeof NotificationsRoute
   '/post': typeof PostRoute
   '/profile': typeof ProfileRoute
+  '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/post'
     | '/profile'
+    | '/saved'
     | '/search'
     | '/listing/$id'
     | '/u/$username'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/post'
     | '/profile'
+    | '/saved'
     | '/search'
     | '/listing/$id'
     | '/u/$username'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/post'
     | '/profile'
+    | '/saved'
     | '/search'
     | '/listing/$id'
     | '/u/$username'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   NotificationsRoute: typeof NotificationsRoute
   PostRoute: typeof PostRoute
   ProfileRoute: typeof ProfileRoute
+  SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
   ListingIdRoute: typeof ListingIdRoute
   UUsernameRoute: typeof UUsernameRoute
@@ -141,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saved': {
+      id: '/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof SavedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotificationsRoute: NotificationsRoute,
   PostRoute: PostRoute,
   ProfileRoute: ProfileRoute,
+  SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
   ListingIdRoute: ListingIdRoute,
   UUsernameRoute: UUsernameRoute,
