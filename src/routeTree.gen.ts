@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
@@ -21,6 +22,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/search'
     | '/settings'
+    | '/sitemap.xml'
     | '/listing/$id'
     | '/u/$username'
   fileRoutesByTo: FileRoutesByTo
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/search'
     | '/settings'
+    | '/sitemap.xml'
     | '/listing/$id'
     | '/u/$username'
   id:
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/saved'
     | '/search'
     | '/settings'
+    | '/sitemap.xml'
     | '/listing/$id'
     | '/u/$username'
   fileRoutesById: FileRoutesById
@@ -169,12 +181,20 @@ export interface RootRouteChildren {
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ListingIdRoute: typeof ListingIdRoute
   UUsernameRoute: typeof UUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ListingIdRoute: ListingIdRoute,
   UUsernameRoute: UUsernameRoute,
 }
