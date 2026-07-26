@@ -124,8 +124,9 @@ function ListingPage() {
     if (!reason) return;
     const { error } = await supabase.from("reports").insert({
       reporter_id: user.id,
-      listing_id: id,
-      reason: reason as never,
+      target_type: "listing",
+      target_id: id,
+      reason: reason as "fake" | "fraud" | "inappropriate" | "other" | "spam",
       details: details || null,
     });
     if (error) toast.error("Could not send report");
