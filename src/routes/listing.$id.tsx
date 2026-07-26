@@ -64,7 +64,7 @@ function ListingPage() {
       const { data, error } = await supabase
         .from("listings")
         .select(
-          "id,title,description,price,media_url,status,created_at,view_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,whatsapp)",
+          "id,title,description,price,media_url,status,created_at,view_count,whatsapp_click_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,whatsapp)",
         )
         .eq("id", id)
         .maybeSingle();
@@ -110,9 +110,8 @@ function ListingPage() {
     if (!listing || !vendor) return;
     await supabase
       .from("listings")
-      .update({ whatsapp_click_count: undefined })
-      .eq("id", listing.id)
-      .then(() => undefined);
+      .update({ whatsapp_click_count: (listing.whatsapp_click_count ?? 0) + 1 })
+      .eq("id", listing.id);
     window.open(whatsappLink(vendor.whatsapp, listing.title), "_blank", "noopener");
   }
 
@@ -236,10 +235,9 @@ function ListingPage() {
                 <SelectValue placeholder="Why are you reporting this?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="scam">Scam or fraud</SelectItem>
-                <SelectItem value="counterfeit">Counterfeit goods</SelectItem>
-                <SelectItem value="prohibited">Prohibited item</SelectItem>
-                <SelectItem value="offensive">Offensive content</SelectItem>
+                <SelectItem value="fraud">Scam or fraud</SelectItem>
+                <SelectItem value="fake">Fake or counterfeit goods</SelectItem>
+                <SelectItem value="inappropriate">Inappropriate content</SelectItem>
                 <SelectItem value="spam">Spam</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
