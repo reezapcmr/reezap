@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -19,6 +20,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
 }
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/search'
+    | '/settings'
     | '/listing/$id'
     | '/u/$username'
   fileRoutesByTo: FileRoutesByTo
@@ -120,6 +130,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/search'
+    | '/settings'
     | '/listing/$id'
     | '/u/$username'
   id:
@@ -131,6 +142,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/saved'
     | '/search'
+    | '/settings'
     | '/listing/$id'
     | '/u/$username'
   fileRoutesById: FileRoutesById
@@ -143,12 +155,20 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
   ListingIdRoute: typeof ListingIdRoute
   UUsernameRoute: typeof UUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
@@ -223,6 +243,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
   ListingIdRoute: ListingIdRoute,
   UUsernameRoute: UUsernameRoute,
 }
