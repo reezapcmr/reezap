@@ -1,24 +1,150 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { AppShell, TopBar } from "@/components/app-shell";
+import { ListingCard, type FeedListing } from "@/components/listing-card";
+import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MapPin } from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Reezap — Discover vendors near you in the South West" },
+      {
+        name: "description",
+        content:
+          "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
+      },
+      { property: "og:title", content: "Reezap — Discover vendors near you" },
+      {
+        property: "og:description",
+        content:
+          "Local discovery for Cameroon's South West Region. Browse what's on sale near you and order on WhatsApp.",
+      },
+    ],
+  }),
+  component: Feed,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+const LISTING_SELECT =
+  "id,title,description,price,media_url,status,created_at,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";
+
+function Feed() {
+  const { profile } = useAuth();
+  const [scope, setScope] = useState<"near" | "all">("near");
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+
+  const { data: categories } = useQuery({
+    queryKey: ["categories"],
+    queryFn: async () => {
+      const { data } = await supabase.from("categories").select("id,name,emoji,slug").order("name");
+      return data ?? [];
+    },
+  });
+
+  const townId = scope === "near" ? (profile?.town_id ?? null) : null;
+
+  const { data: listings, isLoading } = useQuery({
+    queryKey: ["feed", townId, categoryId],
+    queryFn: async () => {
+      let q = supabase
+        .from("listings")
+        .select(LISTING_SELECT)
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (townId) q = q.eq("town_id", townId);
+      if (categoryId) q = q.eq("category_id", categoryId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return (data ?? []) as unknown as FeedListing[];
+    },
+  });
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
+    <AppShell>
+      <TopBar />
+      <section className="border-b border-border px-4 py-5">
+        <h1 className="text-2xl font-extrabold leading-tight">
+          What's fresh <span className="text-primary">near you</span>
+        </h1>
+        <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+          <MapPin className="size-3.5" />
+          {profile?.town_id && scope === "near"
+            ? "Showing your town first"
+            : "South West Region, Cameroon"}
+        </p>
+        <div className="mt-4 flex gap-2">
+          {(["near", "all"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setScope(s)}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-semibold transition-colors",
+                scope === s
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-muted-foreground",
+              )}
+            >
+              {s === "near" ? "Near me" : "Whole region"}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
+        <button
+          onClick={() => setCategoryId(null)}
+          className={cn(
+            "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm",
+            !categoryId && "border-primary text-primary",
+          )}
+        >
+          All
+        </button>
+        {categories?.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setCategoryId(c.id)}
+            className={cn(
+              "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm",
+              categoryId === c.id && "border-primary text-primary",
+            )}
+          >
+            {c.emoji} {c.name}
+          </button>
+        ))}
+      </div>
+
+      {isLoading && (
+        <div className="space-y-6 p-4">
+          {[0, 1].map((i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-10 w-1/2" />
+              <Skeleton className="aspect-[4/3] w-full" />
+            </div>
+          ))}
+        </div>
+      )}
+
+      {!isLoading && !listings?.length && (
+        <div className="px-6 py-16 text-center">
+          <p className="font-semibold">Nothing here yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Be the first to post something in this area.
+          </p>
+          <Link
+            to="/post"
+            className="mt-5 inline-block rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+          >
+            Post a listing
+          </Link>
+        </div>
+      )}
+
+      {listings?.map((l) => <ListingCard key={l.id} listing={l} />)}
+    </AppShell>
   );
 }
