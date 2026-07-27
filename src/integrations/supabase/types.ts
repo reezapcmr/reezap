@@ -208,10 +208,13 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string | null
+          expires_at: string
           id: string
           is_flagged: boolean
+          is_pinned: boolean
           media_type: string
           media_url: string | null
+          media_urls: string[]
           neighborhood_id: string | null
           price: number | null
           status: Database["public"]["Enums"]["listing_status"]
@@ -227,10 +230,13 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          expires_at?: string
           id?: string
           is_flagged?: boolean
+          is_pinned?: boolean
           media_type?: string
           media_url?: string | null
+          media_urls?: string[]
           neighborhood_id?: string | null
           price?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
@@ -246,10 +252,13 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          expires_at?: string
           id?: string
           is_flagged?: boolean
+          is_pinned?: boolean
           media_type?: string
           media_url?: string | null
+          media_urls?: string[]
           neighborhood_id?: string | null
           price?: number | null
           status?: Database["public"]["Enums"]["listing_status"]
@@ -383,13 +392,18 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_premium: boolean
           is_vendor: boolean
           is_verified: boolean
           language: string
           neighborhood_id: string | null
+          notify_follows: boolean
+          notify_moderation: boolean
+          premium_until: string | null
           town_id: string | null
           updated_at: string
           username: string
+          username_changed_at: string | null
           whatsapp: string | null
         }
         Insert: {
@@ -398,13 +412,18 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          is_premium?: boolean
           is_vendor?: boolean
           is_verified?: boolean
           language?: string
           neighborhood_id?: string | null
+          notify_follows?: boolean
+          notify_moderation?: boolean
+          premium_until?: string | null
           town_id?: string | null
           updated_at?: string
           username: string
+          username_changed_at?: string | null
           whatsapp?: string | null
         }
         Update: {
@@ -413,13 +432,18 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_premium?: boolean
           is_vendor?: boolean
           is_verified?: boolean
           language?: string
           neighborhood_id?: string | null
+          notify_follows?: boolean
+          notify_moderation?: boolean
+          premium_until?: string | null
           town_id?: string | null
           updated_at?: string
           username?: string
+          username_changed_at?: string | null
           whatsapp?: string | null
         }
         Relationships: [
@@ -620,6 +644,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_listing_view: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
+      increment_whatsapp_click: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
+      repost_listing: { Args: { p_listing_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
