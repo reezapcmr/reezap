@@ -1,7 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, Home, Plus, Search, User, ShieldCheck, Bookmark, Settings } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, type ReactNode } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
 import { useAuth } from "@/hooks/use-auth";
@@ -30,10 +31,58 @@ function useUnreadCount() {
   });
 }
 
+/**
+ * Live notifications: follow alerts, new listings from vendors you follow and
+ * moderation decisions arrive instantly without a refresh.
+ */
+function useRealtimeNotifications() {
+  const { user } = useAuth();
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`notifications:${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const row = payload.new as { title: string; body: string | null };
+          toast(row.title, { description: row.body ?? undefined });
+          void qc.invalidateQueries({ queryKey: ["unread", user.id] });
+          void qc.invalidateQueries({ queryKey: ["notifications", user.id] });
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          void qc.invalidateQueries({ queryKey: ["unread", user.id] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const { isAdmin } = useAuth();
   const { data: unread } = useUnreadCount();
+  useRealtimeNotifications();
 
   const sideLinks = [
     ...tabs.filter((t) => t.to !== "/post"),
@@ -118,15 +167,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function TopBar({ title, right }: { title?: ReactNode; right?: ReactNode }) {
+export function TopBar({
+  title,
+  right,
+  showLogo = true,
+}: {
+  title?: ReactNode;
+  right?: ReactNode;
+  showLogo?: boolean;
+}) {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border bg-background/90 px-4 py-3 backdrop-blur lg:px-6">
       {title ? (
         <h1 className="text-lg font-bold">{title}</h1>
-      ) : (
+      ) : showLogo ? (
         <div className="lg:hidden">
           <Logo size={28} />
         </div>
+      ) : (
+        <span />
       )}
       {right}
     </header>

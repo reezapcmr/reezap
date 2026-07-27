@@ -15,12 +15,12 @@ export const Route = createFileRoute("/profile")({
       { title: "Your Reezap profile" },
       {
         name: "description",
-        content: "Manage your listings, track views and WhatsApp orders, and grow your following.",
+        content: "Manage your listings, track views and WhatsApp clicks, and grow your following.",
       },
       { property: "og:title", content: "Your Reezap profile" },
       {
         property: "og:description",
-        content: "Your vendor dashboard on Reezap: listings, views and WhatsApp orders.",
+        content: "Your vendor dashboard on Reezap: listings, views and WhatsApp clicks.",
       },
     ],
   }),
@@ -77,7 +77,7 @@ function ProfilePage() {
   }
 
   const views = listings?.reduce((s, l) => s + (l.view_count ?? 0), 0) ?? 0;
-  const orders = listings?.reduce((s, l) => s + (l.whatsapp_click_count ?? 0), 0) ?? 0;
+  const whatsappClicks = listings?.reduce((s, l) => s + (l.whatsapp_click_count ?? 0), 0) ?? 0;
 
   return (
     <AppShell>
@@ -125,7 +125,7 @@ function ProfilePage() {
           <section className="grid grid-cols-3 divide-x divide-border border-b border-border">
             {[
               { label: "Views", value: views, icon: Eye },
-              { label: "WhatsApp orders", value: orders, icon: MessageCircle },
+              { label: "WhatsApp clicks", value: whatsappClicks, icon: MessageCircle },
               { label: "Followers", value: followers ?? 0, icon: BadgeCheck },
             ].map(({ label, value, icon: Icon }) => (
               <div key={label} className="px-3 py-4 text-center">
@@ -162,7 +162,7 @@ function ProfilePage() {
                   <p className="truncate text-sm font-semibold">{l.title}</p>
                   <p className="text-xs text-primary">{formatPrice(l.price)}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    {l.view_count ?? 0} views · {l.whatsapp_click_count ?? 0} orders
+                    {l.view_count ?? 0} views · {l.whatsapp_click_count ?? 0} WhatsApp clicks
                   </p>
                 </div>
                 <button onClick={() => toggleStatus(l.id, l.status)}>

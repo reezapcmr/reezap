@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MapPin } from "lucide-react";
+import { LISTING_SELECT } from "@/lib/reezap";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,13 +25,12 @@ export const Route = createFileRoute("/")({
         content:
           "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Feed,
 });
-
-const LISTING_SELECT =
-  "id,title,description,price,media_url,status,created_at,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";
 
 function Feed() {
   const { profile } = useAuth();
@@ -53,6 +53,10 @@ function Feed() {
       let q = supabase
         .from("listings")
         .select(LISTING_SELECT)
+        // Listings live for 48 hours so the timeline stays fresh.
+        .gt("expires_at", new Date().toISOString())
+        // Premium pinned posts ride at the top.
+        .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(30);
       if (townId) q = q.eq("town_id", townId);
@@ -65,7 +69,7 @@ function Feed() {
 
   return (
     <AppShell>
-      <TopBar />
+      <TopBar showLogo={false} />
       <section className="border-b border-border px-4 py-5">
         <h1 className="text-2xl font-extrabold leading-tight">
           What's fresh <span className="text-primary">near you</span>

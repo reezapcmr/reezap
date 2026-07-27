@@ -14,6 +14,11 @@ export type Profile = {
   language: string;
   is_vendor: boolean;
   is_verified: boolean;
+  is_premium: boolean;
+  premium_until: string | null;
+  username_changed_at: string | null;
+  notify_follows: boolean;
+  notify_moderation: boolean;
 };
 
 type AuthContextValue = {
