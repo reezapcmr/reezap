@@ -13,13 +13,13 @@ import { LISTING_SELECT } from "@/lib/reezap";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Reezap — Discover vendors near you in the South West" },
+      { title: "Reezap" },
       {
         name: "description",
         content:
           "Find food, fashion, beauty, repairs and services from vendors around Buea, Limbe, Kumba and beyond. Order straight on WhatsApp.",
       },
-      { property: "og:title", content: "Reezap — Discover vendors near you in the South West" },
+      { property: "og:title", content: "Reezap" },
       {
         property: "og:description",
         content:
