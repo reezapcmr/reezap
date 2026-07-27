@@ -13,9 +13,16 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Avatar, ListingMedia, StatusPill } from "@/components/listing-card";
+import { Avatar, ListingGallery, StatusPill } from "@/components/listing-card";
 import { Button } from "@/components/ui/button";
-import { formatPrice, isFresh, proximityLabel, timeAgo, whatsappLink } from "@/lib/reezap";
+import {
+  formatPrice,
+  galleryPaths,
+  isFresh,
+  proximityLabel,
+  timeAgo,
+  whatsappLink,
+} from "@/lib/reezap";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
@@ -64,7 +71,7 @@ function ListingPage() {
       const { data, error } = await supabase
         .from("listings")
         .select(
-          "id,title,description,price,media_url,status,created_at,view_count,whatsapp_click_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,whatsapp)",
+          "id,title,description,price,media_url,media_urls,expires_at,status,created_at,view_count,whatsapp_click_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,whatsapp)",
         )
         .eq("id", id)
         .maybeSingle();
@@ -99,19 +106,14 @@ function ListingPage() {
 
   useEffect(() => {
     if (!listing) return;
-    void supabase
-      .from("listings")
-      .update({ view_count: (listing.view_count ?? 0) + 1 })
-      .eq("id", listing.id);
+    // SECURITY DEFINER RPC so any visitor can add a view without write access.
+    void supabase.rpc("increment_listing_view", { p_listing_id: listing.id });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listing?.id]);
 
   async function handleOrder() {
     if (!listing || !vendor) return;
-    await supabase
-      .from("listings")
-      .update({ whatsapp_click_count: (listing.whatsapp_click_count ?? 0) + 1 })
-      .eq("id", listing.id);
+    await supabase.rpc("increment_whatsapp_click", { p_listing_id: listing.id });
     window.open(whatsappLink(vendor.whatsapp, listing.title), "_blank", "noopener");
   }
 
@@ -155,7 +157,7 @@ function ListingPage() {
         <h1 className="truncate text-base font-bold">{listing.title}</h1>
       </header>
 
-      <ListingMedia path={listing.media_url} alt={listing.title} />
+      <ListingGallery paths={galleryPaths(listing)} alt={listing.title} />
 
       <div className="space-y-5 p-4">
         <div className="flex items-start justify-between gap-3">
