@@ -5,6 +5,7 @@ import { Search as SearchIcon, BadgeCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { Avatar, ListingCard, type FeedListing } from "@/components/listing-card";
+import { LISTING_SELECT } from "@/lib/reezap";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
@@ -28,8 +29,6 @@ export const Route = createFileRoute("/search")({
   component: SearchPage,
 });
 
-const LISTING_SELECT =
-  "id,title,description,price,media_url,status,created_at,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";
 
 function SearchPage() {
   const [q, setQ] = useState("");

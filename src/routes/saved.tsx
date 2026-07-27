@@ -5,6 +5,7 @@ import { Bookmark } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { ListingCard, type FeedListing } from "@/components/listing-card";
+import { LISTING_SELECT } from "@/lib/reezap";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/saved")({
@@ -22,8 +23,6 @@ export const Route = createFileRoute("/saved")({
   component: SavedPage,
 });
 
-const LISTING_SELECT =
-  "id,title,description,price,media_url,status,created_at,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";
 
 function SavedPage() {
   const { user, loading } = useAuth();
