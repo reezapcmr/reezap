@@ -1,11 +1,19 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, Bookmark, Heart, MapPin } from "lucide-react";
+import { BadgeCheck, Bookmark, Heart, ImageIcon, MapPin, Pin } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { formatPrice, isFresh, resolveMedia, timeAgo } from "@/lib/reezap";
+import {
+  expiresIn,
+  formatPrice,
+  galleryPaths,
+  isFresh,
+  resolveMedia,
+  resolveMediaList,
+  timeAgo,
+} from "@/lib/reezap";
 import { toast } from "sonner";
 
 export type FeedListing = {
@@ -14,8 +22,11 @@ export type FeedListing = {
   description: string | null;
   price: number | null;
   media_url: string | null;
+  media_urls: string[] | null;
   status: "in_stock" | "sold_out_today";
   created_at: string;
+  expires_at: string | null;
+  is_pinned?: boolean | null;
   town_id: string | null;
   neighborhood_id: string | null;
   towns: { name: string; division: string } | null;
@@ -31,26 +42,102 @@ export type FeedListing = {
   likes?: { count: number }[];
 };
 
+function Placeholder({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "flex aspect-[4/3] w-full items-center justify-center bg-secondary text-muted-foreground",
+        className,
+      )}
+    >
+      <ImageIcon className="size-6" />
+    </div>
+  );
+}
+
 export function ListingMedia({ path, alt }: { path: string | null; alt: string }) {
   const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
   useEffect(() => {
     let active = true;
+    setFailed(false);
+    setSrc(null);
     void resolveMedia(path).then((url) => active && setSrc(url));
     return () => {
       active = false;
     };
   }, [path]);
 
-  if (!src) return <div className="aspect-[4/3] w-full bg-secondary" />;
+  if (!src || failed) return <Placeholder />;
   return (
     <img
       src={src}
       alt={alt}
       loading="lazy"
+      onError={() => setFailed(true)}
       className="aspect-[4/3] w-full object-cover"
       width={800}
       height={600}
     />
+  );
+}
+
+/** Swipeable gallery of up to 3 photos, used on listing detail pages. */
+export function ListingGallery({ paths, alt }: { paths: string[]; alt: string }) {
+  const [urls, setUrls] = useState<string[]>([]);
+  const [index, setIndex] = useState(0);
+  const key = paths.join("|");
+
+  useEffect(() => {
+    let active = true;
+    void resolveMediaList(paths).then((u) => {
+      if (!active) return;
+      setUrls(u);
+      setIndex(0);
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  if (!urls.length) return <Placeholder />;
+
+  return (
+    <div className="relative">
+      <div
+        className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto"
+        onScroll={(e) => {
+          const el = e.currentTarget;
+          setIndex(Math.round(el.scrollLeft / Math.max(1, el.clientWidth)));
+        }}
+      >
+        {urls.map((u, i) => (
+          <img
+            key={u}
+            src={u}
+            alt={`${alt} — photo ${i + 1}`}
+            className="aspect-[4/3] w-full shrink-0 snap-center object-cover"
+            width={800}
+            height={600}
+          />
+        ))}
+      </div>
+      {urls.length > 1 && (
+        <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
+          {urls.map((u, i) => (
+            <span
+              key={u}
+              className={cn(
+                "size-1.5 rounded-full transition-colors",
+                i === index ? "bg-primary" : "bg-foreground/30",
+              )}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -59,10 +146,20 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
   const qc = useQueryClient();
   const [saved, setSaved] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(listing.likes?.[0]?.count ?? 0);
   const vendor = listing.profiles;
+  const photos = galleryPaths(listing);
 
   useEffect(() => {
-    if (!user) return;
+    setLikes(listing.likes?.[0]?.count ?? 0);
+  }, [listing.likes]);
+
+  useEffect(() => {
+    if (!user) {
+      setSaved(false);
+      setLiked(false);
+      return;
+    }
     let active = true;
     void (async () => {
       const [{ data: b }, { data: l }] = await Promise.all([
@@ -70,8 +167,14 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           .from("bookmarks")
           .select("listing_id")
           .eq("listing_id", listing.id)
+          .eq("user_id", user.id)
           .maybeSingle(),
-        supabase.from("likes").select("listing_id").eq("listing_id", listing.id).eq("user_id", user.id).maybeSingle(),
+        supabase
+          .from("likes")
+          .select("listing_id")
+          .eq("listing_id", listing.id)
+          .eq("user_id", user.id)
+          .maybeSingle(),
       ]);
       if (!active) return;
       setSaved(!!b);
@@ -88,13 +191,21 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
       return;
     }
     set(!on);
-    if (on) {
-      await supabase.from(kind).delete().eq("listing_id", listing.id).eq("user_id", user.id);
-    } else {
-      await supabase.from(kind).insert({ listing_id: listing.id, user_id: user.id });
+    if (kind === "likes") setLikes((n) => Math.max(0, n + (on ? -1 : 1)));
+
+    const { error } = on
+      ? await supabase.from(kind).delete().eq("listing_id", listing.id).eq("user_id", user.id)
+      : await supabase.from(kind).insert({ listing_id: listing.id, user_id: user.id });
+
+    if (error) {
+      set(on);
+      if (kind === "likes") setLikes((n) => Math.max(0, n + (on ? 1 : -1)));
+      return;
     }
     void qc.invalidateQueries({ queryKey: ["saved"] });
   }
+
+  const countdown = expiresIn(listing.expires_at);
 
   return (
     <article className="border-b border-border py-4">
@@ -117,12 +228,18 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
             {timeAgo(listing.created_at)}
           </p>
         </div>
+        {listing.is_pinned && <Pin className="size-4 text-primary" aria-label="Pinned" />}
         <StatusPill status={listing.status} fresh={isFresh(listing.created_at)} />
       </div>
 
       <Link to="/listing/$id" params={{ id: listing.id }} className="mt-3 block">
-        <div className="overflow-hidden rounded-xl border border-border">
-          <ListingMedia path={listing.media_url} alt={listing.title} />
+        <div className="relative overflow-hidden rounded-xl border border-border">
+          <ListingMedia path={photos[0] ?? null} alt={listing.title} />
+          {photos.length > 1 && (
+            <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-[11px] font-semibold backdrop-blur">
+              <ImageIcon className="size-3" /> {photos.length}
+            </span>
+          )}
         </div>
       </Link>
 
@@ -154,6 +271,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
             className={cn("flex items-center gap-1.5 text-sm", liked && "text-primary")}
           >
             <Heart className={cn("size-5", liked && "fill-current")} />
+            {likes > 0 && <span className="text-xs font-semibold">{likes}</span>}
           </button>
           <button
             onClick={() => toggle("bookmarks", saved, setSaved)}
@@ -162,6 +280,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           >
             <Bookmark className={cn("size-5", saved && "fill-current")} />
           </button>
+          {countdown && <span className="text-[11px] text-muted-foreground">{countdown}</span>}
           {listing.categories && (
             <span className="ml-auto text-xs text-muted-foreground">
               {listing.categories.emoji} {listing.categories.name}
@@ -201,8 +320,12 @@ export function Avatar({
   size?: number;
 }) {
   const [src, setSrc] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+
   useEffect(() => {
     let active = true;
+    setFailed(false);
+    setSrc(null);
     void resolveMedia(profile?.avatar_url, "avatars").then((u) => active && setSrc(u));
     return () => {
       active = false;
@@ -210,12 +333,13 @@ export function Avatar({
   }, [profile?.avatar_url]);
 
   const initial = (profile?.display_name ?? profile?.username ?? "?").charAt(0).toUpperCase();
-  return src ? (
+  return src && !failed ? (
     <img
       src={src}
       alt={profile?.username ?? "avatar"}
       width={size}
       height={size}
+      onError={() => setFailed(true)}
       className="shrink-0 rounded-full object-cover"
       style={{ width: size, height: size }}
     />
