@@ -54,7 +54,11 @@ function SettingsPage() {
     if (!loading && !user) void navigate({ to: "/auth", search: { next: "/settings" } });
   }, [loading, user, navigate]);
 
-  async function patch(values: Record<string, unknown>) {
+  async function patch(values: {
+    language?: string;
+    notify_follows?: boolean;
+    notify_moderation?: boolean;
+  }) {
     if (!user) return;
     setSaving(true);
     const { error } = await supabase.from("profiles").update(values).eq("id", user.id);
