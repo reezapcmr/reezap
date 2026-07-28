@@ -43,7 +43,7 @@ function VendorProfile() {
       const { data } = await supabase
         .from("profiles")
         .select(
-          "id,username,display_name,avatar_url,bio,whatsapp,is_vendor,is_verified,created_at,towns(name,division),neighborhoods(name)",
+          "id,username,display_name,avatar_url,bio,is_vendor,is_verified,created_at,towns(name,division),neighborhoods(name)",
         )
         .eq("username", username)
         .maybeSingle();
@@ -214,13 +214,16 @@ function VendorProfile() {
           <Button
             variant="secondary"
             className="flex-1 rounded-full font-bold"
-            onClick={() =>
-              window.open(
-                whatsappLink(vendor.whatsapp, `your shop on Reezap`),
-                "_blank",
-                "noopener",
-              )
-            }
+            onClick={async () => {
+              const { data: number } = await supabase.rpc("get_vendor_whatsapp", {
+                p_user_id: vendor.id,
+              });
+              if (!number) {
+                toast("This vendor hasn't added a WhatsApp number yet");
+                return;
+              }
+              window.open(whatsappLink(number, `your shop on Reezap`), "_blank", "noopener");
+            }}
           >
             <MessageCircle className="mr-2 size-4" /> WhatsApp
           </Button>
