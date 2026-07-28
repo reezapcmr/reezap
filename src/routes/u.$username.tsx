@@ -144,6 +144,7 @@ function VendorProfile() {
     );
   }
 
+  const isSelf = !!user && user.id === vendor.id;
   const avg = ratings?.length ? ratings.reduce((s, r) => s + r.stars, 0) / ratings.length : null;
 
   return (
@@ -190,6 +191,19 @@ function VendorProfile() {
         {vendor.bio && <p className="mt-3 text-sm text-foreground/90">{vendor.bio}</p>}
 
         <div className="mt-4 flex gap-2">
+          {isSelf ? (
+            <>
+              <Link to="/edit-profile" className="flex-1">
+                <Button variant="secondary" className="w-full rounded-full font-bold">
+                  Edit profile
+                </Button>
+              </Link>
+              <Link to="/profile" className="flex-1">
+                <Button className="w-full rounded-full font-bold">Your dashboard</Button>
+              </Link>
+            </>
+          ) : (
+            <>
           <Button
             onClick={toggleFollow}
             variant={followState?.following ? "secondary" : "default"}
@@ -210,6 +224,8 @@ function VendorProfile() {
           >
             <MessageCircle className="mr-2 size-4" /> WhatsApp
           </Button>
+            </>
+          )}
         </div>
       </section>
 
