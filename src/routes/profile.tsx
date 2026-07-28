@@ -1,13 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { BadgeCheck, Eye, MessageCircle, Settings, ShieldCheck } from "lucide-react";
+import { BadgeCheck, Eye, MessageCircle, RefreshCw, Settings, ShieldCheck, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { Avatar, ListingMedia, StatusPill } from "@/components/listing-card";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
-import { formatPrice, isFresh } from "@/lib/reezap";
+import { toast } from "sonner";
+import { formatPrice, isFresh, isExpired, expiresIn } from "@/lib/reezap";
 
 export const Route = createFileRoute("/profile")({
   head: () => ({
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/profile")({
 function ProfilePage() {
   const { user, profile, loading, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (!loading && !user) void navigate({ to: "/auth", search: { next: "/profile" } });
@@ -41,7 +43,7 @@ function ProfilePage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("listings")
-        .select("id,title,price,media_url,status,created_at,view_count,whatsapp_click_count")
+        .select("id,title,price,media_url,status,created_at,expires_at,is_pinned,view_count,whatsapp_click_count")
         .eq("vendor_id", user!.id)
         .order("created_at", { ascending: false });
       return data ?? [];
@@ -65,7 +67,25 @@ function ProfilePage() {
       .from("listings")
       .update({ status: status === "in_stock" ? "sold_out_today" : "in_stock" })
       .eq("id", id);
-    window.location.reload();
+    void qc.invalidateQueries({ queryKey: ["my-listings", user?.id] });
+  }
+
+  async function repost(id: string) {
+    const { error } = await supabase.rpc("repost_listing", { p_listing_id: id });
+    if (error) toast.error("Could not repost this listing");
+    else {
+      toast.success("Reposted — it's live again.");
+      void qc.invalidateQueries({ queryKey: ["my-listings", user?.id] });
+    }
+  }
+
+  async function removeListing(id: string) {
+    const { error } = await supabase.from("listings").delete().eq("id", id);
+    if (error) toast.error("Could not delete this listing");
+    else {
+      toast.success("Listing deleted");
+      void qc.invalidateQueries({ queryKey: ["my-listings", user?.id] });
+    }
   }
 
   if (!profile) {
@@ -104,20 +124,27 @@ function ProfilePage() {
       <section className="border-b border-border p-4">
         <div className="flex items-center gap-4">
           <Avatar profile={profile} size={68} />
-          <div className="min-w-0">
+          <Link to="/u/$username" params={{ username: profile.username }} className="min-w-0">
             <h2 className="flex items-center gap-1.5 text-lg font-extrabold">
               <span className="truncate">{profile.display_name ?? profile.username}</span>
               {profile.is_verified && <BadgeCheck className="size-5 text-primary" />}
             </h2>
             <p className="text-sm text-muted-foreground">@{profile.username}</p>
-          </div>
+          </Link>
         </div>
         {profile.bio && <p className="mt-3 text-sm text-foreground/90">{profile.bio}</p>}
-        <Link to="/settings">
-          <Button variant="secondary" className="mt-4 w-full rounded-full font-bold">
-            Edit profile
-          </Button>
-        </Link>
+        <div className="mt-4 flex gap-2">
+          <Link to="/edit-profile" className="flex-1">
+            <Button variant="secondary" className="w-full rounded-full font-bold">
+              Edit profile
+            </Button>
+          </Link>
+          <Link to="/u/$username" params={{ username: profile.username }} className="flex-1">
+            <Button variant="secondary" className="w-full rounded-full font-bold">
+              View public profile
+            </Button>
+          </Link>
+        </div>
       </section>
 
       {profile.is_vendor ? (
@@ -138,7 +165,7 @@ function ProfilePage() {
 
           {!profile.is_verified && (
             <Link
-              to="/settings"
+              to="/edit-profile"
               className="block border-b border-border bg-surface px-4 py-3 text-sm"
             >
               <span className="font-semibold text-primary">Get verified</span>
@@ -164,10 +191,42 @@ function ProfilePage() {
                   <p className="text-[11px] text-muted-foreground">
                     {l.view_count ?? 0} views · {l.whatsapp_click_count ?? 0} WhatsApp clicks
                   </p>
+                  <p className="text-[11px] font-semibold text-muted-foreground">
+                    {isExpired(l.expires_at) ? "Expired" : expiresIn(l.expires_at)}
+                    {l.is_pinned ? " · Pinned" : ""}
+                  </p>
                 </div>
-                <button onClick={() => toggleStatus(l.id, l.status)}>
-                  <StatusPill status={l.status} fresh={isFresh(l.created_at)} />
-                </button>
+                {isExpired(l.expires_at) ? (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      onClick={() => repost(l.id)}
+                      aria-label="Repost listing"
+                      className="rounded-full bg-primary p-2 text-primary-foreground"
+                    >
+                      <RefreshCw className="size-4" />
+                    </button>
+                    <button
+                      onClick={() => removeListing(l.id)}
+                      aria-label="Delete listing"
+                      className="rounded-full bg-secondary p-2"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button onClick={() => toggleStatus(l.id, l.status)}>
+                      <StatusPill status={l.status} fresh={isFresh(l.created_at)} />
+                    </button>
+                    <button
+                      onClick={() => removeListing(l.id)}
+                      aria-label="Delete listing"
+                      className="rounded-full bg-secondary p-2"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </section>

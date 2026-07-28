@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PostRouteImport } from './routes/post'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as EditProfileRouteImport } from './routes/edit-profile'
@@ -46,6 +47,11 @@ const SavedRoute = SavedRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PremiumRoute = PremiumRouteImport.update({
+  id: '/premium',
+  path: '/premium',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PostRoute = PostRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/edit-profile': typeof EditProfileRoute
   '/notifications': typeof NotificationsRoute
   '/post': typeof PostRoute
+  '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/edit-profile': typeof EditProfileRoute
   '/notifications': typeof NotificationsRoute
   '/post': typeof PostRoute
+  '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/edit-profile': typeof EditProfileRoute
   '/notifications': typeof NotificationsRoute
   '/post': typeof PostRoute
+  '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/edit-profile'
     | '/notifications'
     | '/post'
+    | '/premium'
     | '/profile'
     | '/saved'
     | '/search'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/edit-profile'
     | '/notifications'
     | '/post'
+    | '/premium'
     | '/profile'
     | '/saved'
     | '/search'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/edit-profile'
     | '/notifications'
     | '/post'
+    | '/premium'
     | '/profile'
     | '/saved'
     | '/search'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   EditProfileRoute: typeof EditProfileRoute
   NotificationsRoute: typeof NotificationsRoute
   PostRoute: typeof PostRoute
+  PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
@@ -234,6 +247,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/premium': {
+      id: '/premium'
+      path: '/premium'
+      fullPath: '/premium'
+      preLoaderRoute: typeof PremiumRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/post': {
@@ -302,6 +322,7 @@ const rootRouteChildren: RootRouteChildren = {
   EditProfileRoute: EditProfileRoute,
   NotificationsRoute: NotificationsRoute,
   PostRoute: PostRoute,
+  PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
