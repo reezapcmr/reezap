@@ -1,13 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { timeAgo } from "@/lib/reezap";
+import { timeAgo, resolveMedia } from "@/lib/reezap";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -21,6 +21,34 @@ export const Route = createFileRoute("/admin")({
   }),
   component: AdminPage,
 });
+
+function IdDocument({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    void resolveMedia(path, "id-documents").then((u) => {
+      if (active) setUrl(u);
+    });
+    return () => {
+      active = false;
+    };
+  }, [path]);
+  if (!url)
+    return (
+      <div className="mt-3 flex h-40 items-center justify-center rounded-lg border border-border text-xs text-muted-foreground">
+        Loading ID document…
+      </div>
+    );
+  return (
+    <a href={url} target="_blank" rel="noopener noreferrer" className="mt-3 block">
+      <img
+        src={url}
+        alt="Submitted identity document"
+        className="max-h-64 w-full rounded-lg border border-border object-contain"
+      />
+    </a>
+  );
+}
 
 function AdminPage() {
   const { isAdmin, loading, user } = useAuth();
@@ -38,7 +66,7 @@ function AdminPage() {
       (
         await supabase
           .from("verification_requests")
-          .select("id,user_id,full_name,status,created_at,profiles(username,display_name)")
+          .select("id,user_id,full_name,status,created_at,document_path,profiles(username,display_name)")
           .eq("status", "pending")
           .order("created_at")
       ).data ?? [],
@@ -101,6 +129,7 @@ function AdminPage() {
                 @{(r.profiles as { username: string } | null)?.username} ·{" "}
                 {timeAgo(r.created_at)}
               </p>
+              <IdDocument path={r.document_path} />
               <div className="mt-3 flex gap-2">
                 <Button
                   onClick={() => decide(r.id, r.user_id, true)}

@@ -71,7 +71,7 @@ function ListingPage() {
       const { data, error } = await supabase
         .from("listings")
         .select(
-          "id,title,description,price,media_url,media_urls,expires_at,status,created_at,view_count,whatsapp_click_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,whatsapp)",
+          "id,title,description,price,media_url,media_urls,expires_at,status,created_at,view_count,whatsapp_click_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)",
         )
         .eq("id", id)
         .maybeSingle();
@@ -87,7 +87,6 @@ function ListingPage() {
         display_name: string | null;
         avatar_url: string | null;
         is_verified: boolean;
-        whatsapp: string | null;
       }
     | null;
 
@@ -114,7 +113,13 @@ function ListingPage() {
   async function handleOrder() {
     if (!listing || !vendor) return;
     await supabase.rpc("increment_whatsapp_click", { p_listing_id: listing.id });
-    window.open(whatsappLink(vendor.whatsapp, listing.title), "_blank", "noopener");
+    // Phone numbers are not readable in bulk; fetched one vendor at a time.
+    const { data: number } = await supabase.rpc("get_vendor_whatsapp", { p_user_id: vendor.id });
+    if (!number) {
+      toast.error("This vendor hasn't added a WhatsApp number yet");
+      return;
+    }
+    window.open(whatsappLink(number, listing.title), "_blank", "noopener");
   }
 
   async function submitReport() {

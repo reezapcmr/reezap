@@ -21,6 +21,9 @@ export type Profile = {
   notify_moderation: boolean;
 };
 
+const PROFILE_SELECT =
+  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,language,is_vendor,is_verified,is_premium,premium_until,username_changed_at,notify_follows,notify_moderation";
+
 type AuthContextValue = {
   user: User | null;
   session: Session | null;
@@ -48,11 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   async function loadProfile(userId: string) {
-    const [{ data: p }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+    const [{ data: p }, { data: roles }, { data: whatsapp }] = await Promise.all([
+      supabase.from("profiles").select(PROFILE_SELECT).eq("id", userId).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", userId),
+      // The phone column is not directly readable; owners fetch it via this RPC.
+      supabase.rpc("get_vendor_whatsapp", { p_user_id: userId }),
     ]);
-    setProfile((p as Profile) ?? null);
+    setProfile(p ? ({ ...p, whatsapp: whatsapp ?? null } as Profile) : null);
     setIsAdmin(!!roles?.some((r) => r.role === "admin"));
   }
 
