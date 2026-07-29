@@ -7,8 +7,10 @@ import { ListingCard, type FeedListing } from "@/components/listing-card";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MapPin } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { MapPin, SlidersHorizontal } from "lucide-react";
 import { LISTING_SELECT } from "@/lib/reezap";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -67,9 +69,61 @@ function Feed() {
     },
   });
 
+  const activeCategory = categories?.find((c) => c.id === categoryId) ?? null;
+
   return (
     <AppShell>
-      <TopBar showLogo={false} />
+      <TopBar
+        title={
+          <span className="text-[0.95rem] font-extrabold tracking-[0.28em] text-foreground">
+            REEZAP
+          </span>
+        }
+        right={
+          <Sheet>
+            <SheetTrigger asChild>
+              <button
+                aria-label="Filter categories"
+                className={cn(
+                  "flex items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-sm font-semibold",
+                  categoryId && "border-primary text-primary",
+                )}
+              >
+                <SlidersHorizontal className="size-4" />
+                {activeCategory ? `${activeCategory.emoji ?? ""} ${activeCategory.name}` : "Filter"}
+              </button>
+            </SheetTrigger>
+            <SheetContent side="bottom" className="max-h-[75vh] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Filter by category</SheetTitle>
+              </SheetHeader>
+              <div className="mt-5 flex flex-wrap gap-2 pb-4">
+                <button
+                  onClick={() => setCategoryId(null)}
+                  className={cn(
+                    "rounded-full border border-border px-3.5 py-2 text-sm",
+                    !categoryId && "border-primary text-primary",
+                  )}
+                >
+                  All categories
+                </button>
+                {categories?.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => setCategoryId(c.id)}
+                    className={cn(
+                      "rounded-full border border-border px-3.5 py-2 text-sm",
+                      categoryId === c.id && "border-primary text-primary",
+                    )}
+                  >
+                    {c.emoji} {c.name}
+                  </button>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        }
+      />
       <section className="border-b border-border px-4 py-5">
         <h1 className="text-2xl font-extrabold leading-tight">
           What's fresh <span className="text-primary">near you</span>
@@ -98,29 +152,6 @@ function Feed() {
         </div>
       </section>
 
-      <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
-        <button
-          onClick={() => setCategoryId(null)}
-          className={cn(
-            "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm",
-            !categoryId && "border-primary text-primary",
-          )}
-        >
-          All
-        </button>
-        {categories?.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setCategoryId(c.id)}
-            className={cn(
-              "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm",
-              categoryId === c.id && "border-primary text-primary",
-            )}
-          >
-            {c.emoji} {c.name}
-          </button>
-        ))}
-      </div>
 
       {isLoading && (
         <div className="space-y-6 p-4">
