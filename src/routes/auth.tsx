@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { normalizePhone } from "@/lib/reezap";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
