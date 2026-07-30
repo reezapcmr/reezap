@@ -167,7 +167,23 @@ function AuthPage() {
                   placeholder="Maman Joy"
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone">WhatsApp number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="6 70 00 00 00"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Buyers reach you here — we save it as +237 and never show it publicly.
+                </p>
+              </div>
             </>
+
           )}
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
