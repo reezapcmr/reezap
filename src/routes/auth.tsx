@@ -43,6 +43,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
 
