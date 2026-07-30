@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { BadgeCheck, Eye, MessageCircle, RefreshCw, Settings, ShieldCheck, Trash2 } from "lucide-react";
+import { BadgeCheck, Bookmark, Eye, MessageCircle, RefreshCw, Settings, ShieldCheck, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { Avatar, ListingMedia, StatusPill } from "@/components/listing-card";
