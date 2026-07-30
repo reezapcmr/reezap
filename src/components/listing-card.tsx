@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, Bookmark, Heart, ImageIcon, MapPin, Pin } from "lucide-react";
+import { BadgeCheck, Bookmark, Eye, Heart, ImageIcon, MapPin, Pin } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
