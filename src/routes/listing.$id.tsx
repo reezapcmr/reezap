@@ -106,9 +106,12 @@ function ListingPage() {
   useEffect(() => {
     if (!listing) return;
     // SECURITY DEFINER RPC so any visitor can add a view without write access.
-    void supabase.rpc("increment_listing_view", { p_listing_id: listing.id });
+    void supabase
+      .rpc("increment_listing_view", { p_listing_id: listing.id })
+      .then(() => qc.invalidateQueries({ queryKey: ["listing", listing.id] }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listing?.id]);
+
 
   async function handleOrder() {
     if (!listing || !vendor) return;
