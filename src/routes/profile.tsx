@@ -145,6 +145,12 @@ function ProfilePage() {
             </Button>
           </Link>
         </div>
+        <Link to="/saved" className="mt-2 block">
+          <Button variant="secondary" className="w-full rounded-full font-bold">
+            <Bookmark className="mr-2 size-4" /> Saved listings
+          </Button>
+        </Link>
+
       </section>
 
       {profile.is_vendor ? (
