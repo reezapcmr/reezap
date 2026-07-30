@@ -72,6 +72,11 @@ function AuthPage() {
           toast.error("Username must be 3–20 letters, numbers or underscores");
           return;
         }
+        const normalizedPhone = normalizePhone(phone);
+        if (!normalizedPhone) {
+          toast.error("Enter a valid Cameroon WhatsApp number, e.g. 6 70 00 00 00");
+          return;
+        }
         const { data: taken } = await supabase
           .from("profiles")
           .select("id")
@@ -81,7 +86,7 @@ function AuthPage() {
           toast.error("That username is already taken");
           return;
         }
-        const { error } = await supabase.auth.signUp({
+        const { data: signed, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -90,6 +95,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        if (signed.user) {
+          // The signup trigger creates the profile; attach the phone number to it.
+          await supabase
+            .from("profiles")
+            .update({ whatsapp: normalizedPhone })
+            .eq("id", signed.user.id);
+        }
         toast.success("Account created — welcome to Reezap!");
         void navigate({ to: safeNext(next) });
       } else {
@@ -97,6 +109,7 @@ function AuthPage() {
         if (error) throw error;
         void navigate({ to: safeNext(next) });
       }
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
