@@ -61,6 +61,7 @@ export const Route = createFileRoute("/listing/$id")({
 function ListingPage() {
   const { id } = Route.useParams();
   const { profile, user } = useAuth();
+  const qc = useQueryClient();
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
