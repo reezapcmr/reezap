@@ -281,6 +281,11 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           >
             <Bookmark className={cn("size-5", saved && "fill-current")} />
           </button>
+          <span className="flex items-center gap-1.5 text-xs" aria-label="Views">
+            <Eye className="size-4" />
+            <span className="font-semibold">{listing.view_count ?? 0}</span>
+          </span>
+
           {countdown && <span className="text-[11px] text-muted-foreground">{countdown}</span>}
           {listing.categories && (
             <span className="ml-auto text-xs text-muted-foreground">
