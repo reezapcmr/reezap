@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { normalizePhone } from "@/lib/reezap";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -43,6 +44,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -72,6 +74,11 @@ function AuthPage() {
           toast.error("Username must be 3–20 letters, numbers or underscores");
           return;
         }
+        const normalizedPhone = normalizePhone(phone);
+        if (!normalizedPhone) {
+          toast.error("Enter a valid Cameroon WhatsApp number, e.g. 6 70 00 00 00");
+          return;
+        }
         const { data: taken } = await supabase
           .from("profiles")
           .select("id")
@@ -81,7 +88,7 @@ function AuthPage() {
           toast.error("That username is already taken");
           return;
         }
-        const { error } = await supabase.auth.signUp({
+        const { data: signed, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -90,6 +97,13 @@ function AuthPage() {
           },
         });
         if (error) throw error;
+        if (signed.user) {
+          // The signup trigger creates the profile; attach the phone number to it.
+          await supabase
+            .from("profiles")
+            .update({ whatsapp: normalizedPhone })
+            .eq("id", signed.user.id);
+        }
         toast.success("Account created — welcome to Reezap!");
         void navigate({ to: safeNext(next) });
       } else {
@@ -97,6 +111,7 @@ function AuthPage() {
         if (error) throw error;
         void navigate({ to: safeNext(next) });
       }
+
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -152,7 +167,23 @@ function AuthPage() {
                   placeholder="Maman Joy"
                 />
               </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="phone">WhatsApp number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  inputMode="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="6 70 00 00 00"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  Buyers reach you here — we save it as +237 and never show it publicly.
+                </p>
+              </div>
             </>
+
           )}
           <div className="space-y-1.5">
             <Label htmlFor="email">Email</Label>
