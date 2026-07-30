@@ -27,6 +27,7 @@ export type FeedListing = {
   created_at: string;
   expires_at: string | null;
   is_pinned?: boolean | null;
+  view_count?: number | null;
   town_id: string | null;
   neighborhood_id: string | null;
   towns: { name: string; division: string } | null;
