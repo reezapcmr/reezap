@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, Bookmark, Heart, ImageIcon, MapPin, Pin } from "lucide-react";
+import { BadgeCheck, Bookmark, Eye, Heart, ImageIcon, MapPin, Pin } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -27,6 +27,7 @@ export type FeedListing = {
   created_at: string;
   expires_at: string | null;
   is_pinned?: boolean | null;
+  view_count?: number | null;
   town_id: string | null;
   neighborhood_id: string | null;
   towns: { name: string; division: string } | null;
@@ -280,6 +281,11 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           >
             <Bookmark className={cn("size-5", saved && "fill-current")} />
           </button>
+          <span className="flex items-center gap-1.5 text-xs" aria-label="Views">
+            <Eye className="size-4" />
+            <span className="font-semibold">{listing.view_count ?? 0}</span>
+          </span>
+
           {countdown && <span className="text-[11px] text-muted-foreground">{countdown}</span>}
           {listing.categories && (
             <span className="ml-auto text-xs text-muted-foreground">

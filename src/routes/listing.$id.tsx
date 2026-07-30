@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -61,6 +61,7 @@ export const Route = createFileRoute("/listing/$id")({
 function ListingPage() {
   const { id } = Route.useParams();
   const { profile, user } = useAuth();
+  const qc = useQueryClient();
   const [reason, setReason] = useState("");
   const [details, setDetails] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
@@ -106,9 +107,12 @@ function ListingPage() {
   useEffect(() => {
     if (!listing) return;
     // SECURITY DEFINER RPC so any visitor can add a view without write access.
-    void supabase.rpc("increment_listing_view", { p_listing_id: listing.id });
+    void supabase
+      .rpc("increment_listing_view", { p_listing_id: listing.id })
+      .then(() => qc.invalidateQueries({ queryKey: ["listing", listing.id] }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [listing?.id]);
+
 
   async function handleOrder() {
     if (!listing || !vendor) return;

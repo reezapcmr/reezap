@@ -145,4 +145,4 @@ export async function stripExif(file: File): Promise<Blob> {
 
 /** Shared PostgREST projection for feed-style listing cards. */
 export const LISTING_SELECT =
-  "id,title,description,price,media_url,media_urls,status,created_at,expires_at,is_pinned,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),likes(count),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";
+  "id,title,description,price,media_url,media_urls,status,created_at,expires_at,is_pinned,view_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),likes(count),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";

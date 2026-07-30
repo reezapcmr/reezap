@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { BadgeCheck, Eye, MessageCircle, RefreshCw, Settings, ShieldCheck, Trash2 } from "lucide-react";
+import { BadgeCheck, Bookmark, Eye, MessageCircle, RefreshCw, Settings, ShieldCheck, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { Avatar, ListingMedia, StatusPill } from "@/components/listing-card";
@@ -145,6 +145,12 @@ function ProfilePage() {
             </Button>
           </Link>
         </div>
+        <Link to="/saved" className="mt-2 block">
+          <Button variant="secondary" className="w-full rounded-full font-bold">
+            <Bookmark className="mr-2 size-4" /> Saved listings
+          </Button>
+        </Link>
+
       </section>
 
       {profile.is_vendor ? (
