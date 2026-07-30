@@ -74,6 +74,15 @@ export function whatsappLink(number: string | null | undefined, title: string) {
   return `https://wa.me/${digits}?text=${text}`;
 }
 
+/** Normalises a Cameroon phone number to international form, or null if invalid. */
+export function normalizePhone(input: string) {
+  const digits = (input ?? "").replace(/[^0-9]/g, "").replace(/^0+/, "");
+  if (/^237[26]\d{8}$/.test(digits)) return `+${digits}`;
+  if (/^[26]\d{8}$/.test(digits)) return `+237${digits}`;
+  return null;
+}
+
+
 const SPAM_WORDS = [
   "wire transfer",
   "bitcoin doubling",
