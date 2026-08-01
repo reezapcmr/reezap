@@ -1,0 +1,12 @@
+DROP TRIGGER IF EXISTS follows_notify ON public.follows;
+DROP TRIGGER IF EXISTS listings_after_insert ON public.listings;
+DROP TRIGGER IF EXISTS listings_created ON public.listings;
+DROP TRIGGER IF EXISTS listings_enforce_limits ON public.listings;
+DROP TRIGGER IF EXISTS listings_media_update ON public.listings;
+DROP TRIGGER IF EXISTS listings_updated ON public.listings;
+DROP TRIGGER IF EXISTS listings_updated_at ON public.listings;
+DROP TRIGGER IF EXISTS profiles_updated ON public.profiles;
+DROP TRIGGER IF EXISTS profiles_updated_at ON public.profiles;
+DROP TRIGGER IF EXISTS profiles_username_change ON public.profiles;
+DROP TRIGGER IF EXISTS reports_notify ON public.reports;
+DROP TRIGGER IF EXISTS verification_notify ON public.verification_requests;
