@@ -100,7 +100,10 @@
 
   html {
     -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
+    background-color: var(--color-background);
   }
+
 
   body {
     background-color: var(--color-background);
