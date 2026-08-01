@@ -23,6 +23,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as ApiPublicHooksCleanupExpiredRouteImport } from './routes/api/public/hooks/cleanup-expired'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -94,6 +95,12 @@ const ListingIdRoute = ListingIdRouteImport.update({
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksCleanupExpiredRoute =
+  ApiPublicHooksCleanupExpiredRouteImport.update({
+    id: '/api/public/hooks/cleanup-expired',
+    path: '/api/public/hooks/cleanup-expired',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/api/public/hooks/cleanup-expired': typeof ApiPublicHooksCleanupExpiredRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +134,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/api/public/hooks/cleanup-expired': typeof ApiPublicHooksCleanupExpiredRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +152,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
+  '/api/public/hooks/cleanup-expired': typeof ApiPublicHooksCleanupExpiredRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/listing/$id'
     | '/u/$username'
+    | '/api/public/hooks/cleanup-expired'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/listing/$id'
     | '/u/$username'
+    | '/api/public/hooks/cleanup-expired'
   id:
     | '__root__'
     | '/'
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/listing/$id'
     | '/u/$username'
+    | '/api/public/hooks/cleanup-expired'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +223,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ListingIdRoute: typeof ListingIdRoute
   UUsernameRoute: typeof UUsernameRoute
+  ApiPublicHooksCleanupExpiredRoute: typeof ApiPublicHooksCleanupExpiredRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -312,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/cleanup-expired': {
+      id: '/api/public/hooks/cleanup-expired'
+      path: '/api/public/hooks/cleanup-expired'
+      fullPath: '/api/public/hooks/cleanup-expired'
+      preLoaderRoute: typeof ApiPublicHooksCleanupExpiredRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -330,6 +351,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ListingIdRoute: ListingIdRoute,
   UUsernameRoute: UUsernameRoute,
+  ApiPublicHooksCleanupExpiredRoute: ApiPublicHooksCleanupExpiredRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
