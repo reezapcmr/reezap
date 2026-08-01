@@ -13,6 +13,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "../hooks/use-auth";
 import { Toaster } from "../components/ui/sonner";
+import { LanguageProvider } from "../lib/i18n";
+
 
 function NotFoundComponent() {
   return (
@@ -107,6 +109,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.jpg", type: "image/x-icon" },
       { rel: "apple-touch-icon", href: "/favicon.jpg" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -123,11 +127,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // Inline colors so phones paint the dark canvas before the CSS arrives.
+    <html lang="en" style={{ backgroundColor: "#0B0B0B", colorScheme: "dark" }}>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ backgroundColor: "#0B0B0B", color: "#F5F5F5" }}>
         {children}
         <Scripts />
       </body>
@@ -141,10 +146,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster position="top-center" />
+        <LanguageProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster position="top-center" />
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+

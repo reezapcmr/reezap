@@ -18,11 +18,13 @@ export type Profile = {
   premium_until: string | null;
   username_changed_at: string | null;
   notify_follows: boolean;
+  notify_likes: boolean;
   notify_moderation: boolean;
 };
 
 const PROFILE_SELECT =
-  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,language,is_vendor,is_verified,is_premium,premium_until,username_changed_at,notify_follows,notify_moderation";
+  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,language,is_vendor,is_verified,is_premium,premium_until,username_changed_at,notify_follows,notify_likes,notify_moderation";
+
 
 type AuthContextValue = {
   user: User | null;

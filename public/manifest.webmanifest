@@ -1,0 +1,13 @@
+{
+  "name": "Reezap",
+  "short_name": "Reezap",
+  "description": "Find food, fashion, beauty, repairs and services from vendors near you. Order straight on WhatsApp.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B0B",
+  "theme_color": "#0B0B0B",
+  "icons": [
+    { "src": "/favicon.jpg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "/favicon.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

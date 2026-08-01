@@ -398,6 +398,7 @@ export type Database = {
           language: string
           neighborhood_id: string | null
           notify_follows: boolean
+          notify_likes: boolean
           notify_moderation: boolean
           premium_until: string | null
           town_id: string | null
@@ -418,6 +419,7 @@ export type Database = {
           language?: string
           neighborhood_id?: string | null
           notify_follows?: boolean
+          notify_likes?: boolean
           notify_moderation?: boolean
           premium_until?: string | null
           town_id?: string | null
@@ -438,6 +440,7 @@ export type Database = {
           language?: string
           neighborhood_id?: string | null
           notify_follows?: boolean
+          notify_likes?: boolean
           notify_moderation?: boolean
           premium_until?: string | null
           town_id?: string | null
