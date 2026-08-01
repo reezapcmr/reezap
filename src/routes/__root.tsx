@@ -123,11 +123,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // Inline colors so phones paint the dark canvas before the CSS arrives.
+    <html lang="en" style={{ backgroundColor: "#0B0B0B", colorScheme: "dark" }}>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ backgroundColor: "#0B0B0B", color: "#F5F5F5" }}>
         {children}
         <Scripts />
       </body>
@@ -141,10 +142,13 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster position="top-center" />
+        <LanguageProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster position="top-center" />
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+
