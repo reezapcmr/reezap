@@ -155,3 +155,41 @@ export async function stripExif(file: File): Promise<Blob> {
 /** Shared PostgREST projection for feed-style listing cards. */
 export const LISTING_SELECT =
   "id,title,description,price,media_url,media_urls,status,created_at,expires_at,is_pinned,view_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),likes(count),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified)";
+
+/** Canonical, shareable public URL for a listing. */
+export const SITE_URL = "https://reezap.lovable.app";
+
+export function listingShareUrl(id: string) {
+  const origin =
+    typeof window !== "undefined" && !window.location.hostname.includes("localhost")
+      ? window.location.origin
+      : SITE_URL;
+  return `${origin}/listing/${id}`;
+}
+
+/**
+ * Shares a listing through the device share sheet (WhatsApp, Facebook, X, …)
+ * and falls back to copying the link. Returns how it was shared.
+ */
+export async function shareListing(listing: { id: string; title: string; price?: number | null }) {
+  const url = listingShareUrl(listing.id);
+  const text = `${listing.title}${
+    listing.price != null ? ` — ${formatPrice(listing.price)}` : ""
+  } on Reezap`;
+
+  if (typeof navigator !== "undefined" && navigator.share) {
+    try {
+      await navigator.share({ title: listing.title, text, url });
+      return "shared" as const;
+    } catch (err) {
+      if ((err as DOMException)?.name === "AbortError") return "cancelled" as const;
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(url);
+    return "copied" as const;
+  } catch {
+    return "failed" as const;
+  }
+}

@@ -8,6 +8,7 @@ import {
   Flag,
   MapPin,
   MessageCircle,
+  Share2,
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,10 +20,13 @@ import {
   formatPrice,
   galleryPaths,
   isFresh,
+  listingShareUrl,
   proximityLabel,
+  shareListing,
   timeAgo,
   whatsappLink,
 } from "@/lib/reezap";
+import { getListingPreview } from "@/lib/listing-share.functions";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
@@ -41,22 +45,54 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/listing/$id")({
-  head: () => ({
-    meta: [
-      { title: "Listing — Reezap" },
-      {
-        name: "description",
-        content: "See the full details of this listing and order the vendor directly on WhatsApp.",
-      },
-      { property: "og:title", content: "Listing — Reezap" },
-      {
-        property: "og:description",
-        content: "Local listing on Reezap. Tap through to order on WhatsApp.",
-      },
-    ],
-  }),
+  loader: ({ params }) => getListingPreview({ data: { id: params.id } }),
+  head: ({ loaderData }) => {
+    const preview = loaderData ?? null;
+    const title = preview ? `${preview.title} — Reezap` : "Listing — Reezap";
+    const bits = [
+      preview?.price != null ? formatPrice(preview.price) : null,
+      preview?.vendor ? `by ${preview.vendor}` : null,
+      preview?.town,
+    ].filter(Boolean);
+    const description = preview
+      ? `${bits.join(" · ")}${preview.description ? ` — ${preview.description}` : ""}`.slice(0, 155)
+      : "See the full details of this listing and order the vendor directly on WhatsApp.";
+
+    return {
+      meta: [
+        { title },
+        { name: "description", content: description },
+        { property: "og:type", content: "product" },
+        { property: "og:title", content: title },
+        { property: "og:description", content: description },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        ...(preview?.image
+          ? [
+              { property: "og:image", content: preview.image },
+              { name: "twitter:image", content: preview.image },
+            ]
+          : []),
+      ],
+      links: preview ? [{ rel: "canonical", href: listingShareUrl(preview.id) }] : [],
+    };
+  },
+  errorComponent: () => (
+    <AppShell>
+      <div className="p-6 text-sm text-muted-foreground">
+        We couldn't load this listing. It may have expired.
+      </div>
+    </AppShell>
+  ),
+  notFoundComponent: () => (
+    <AppShell>
+      <div className="p-6 text-sm text-muted-foreground">This listing no longer exists.</div>
+    </AppShell>
+  ),
   component: ListingPage,
 });
+
 
 function ListingPage() {
   const { id } = Route.useParams();
@@ -126,6 +162,13 @@ function ListingPage() {
     window.open(whatsappLink(number, listing.title), "_blank", "noopener");
   }
 
+  async function handleShare() {
+    if (!listing) return;
+    const result = await shareListing(listing);
+    if (result === "copied") toast.success("Link copied — paste it anywhere");
+    else if (result === "failed") toast.error("Could not share this listing");
+  }
+
   async function submitReport() {
     if (!user) {
       toast("Sign in to report a listing");
@@ -164,6 +207,13 @@ function ListingPage() {
           <ArrowLeft className="size-5" />
         </Link>
         <h1 className="truncate text-base font-bold">{listing.title}</h1>
+        <button
+          onClick={handleShare}
+          aria-label="Share listing"
+          className="ml-auto rounded-full p-2 hover:bg-secondary"
+        >
+          <Share2 className="size-5" />
+        </button>
       </header>
 
       <ListingGallery paths={galleryPaths(listing)} alt={listing.title} />
@@ -225,6 +275,13 @@ function ListingPage() {
             </p>
           </div>
         </Link>
+
+        <button
+          onClick={handleShare}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-border py-3 text-sm font-bold"
+        >
+          <Share2 className="size-4" /> Share this listing
+        </button>
 
         <p className="rounded-lg bg-secondary p-3 text-xs text-muted-foreground">
           Reezap connects you with the vendor. Payment and delivery are arranged directly between
