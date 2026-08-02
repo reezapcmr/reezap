@@ -105,13 +105,25 @@ function NotificationsPage() {
 
   async function markAllRead() {
     if (!user) return;
-    await supabase
+    const { error } = await supabase
       .from("notifications")
       .update({ is_read: true })
       .eq("user_id", user.id)
       .eq("is_read", false);
-    refresh();
+    if (error) toast.error("Could not mark all as read");
+    else refresh();
   }
+
+  async function deleteAll() {
+    if (!user) return;
+    const { error } = await supabase.from("notifications").delete().eq("user_id", user.id);
+    if (error) toast.error("Could not clear your notifications");
+    else {
+      toast.success("All notifications deleted");
+      refresh();
+    }
+  }
+
 
   return (
     <AppShell>
