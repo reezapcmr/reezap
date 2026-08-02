@@ -56,7 +56,9 @@ export const getListingPreview = createServerFn({ method: "GET" })
     if (path) {
       if (path.startsWith("http")) {
         image = path;
-      } else if (!path.startsWith("/")) {
+      } else if (path.startsWith("/")) {
+        image = `https://reezap.lovable.app${path}`;
+      } else {
         // Media lives in a private bucket, so social crawlers need a signed URL.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data: signed } = await supabaseAdmin.storage
