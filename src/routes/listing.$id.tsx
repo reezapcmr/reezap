@@ -8,6 +8,7 @@ import {
   Flag,
   MapPin,
   MessageCircle,
+  Share2,
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,10 +20,13 @@ import {
   formatPrice,
   galleryPaths,
   isFresh,
+  listingShareUrl,
   proximityLabel,
+  shareListing,
   timeAgo,
   whatsappLink,
 } from "@/lib/reezap";
+import { getListingPreview } from "@/lib/listing-share.functions";
 import { useAuth } from "@/hooks/use-auth";
 import {
   Dialog,
@@ -158,6 +162,13 @@ function ListingPage() {
     window.open(whatsappLink(number, listing.title), "_blank", "noopener");
   }
 
+  async function handleShare() {
+    if (!listing) return;
+    const result = await shareListing(listing);
+    if (result === "copied") toast.success("Link copied — paste it anywhere");
+    else if (result === "failed") toast.error("Could not share this listing");
+  }
+
   async function submitReport() {
     if (!user) {
       toast("Sign in to report a listing");
@@ -196,6 +207,13 @@ function ListingPage() {
           <ArrowLeft className="size-5" />
         </Link>
         <h1 className="truncate text-base font-bold">{listing.title}</h1>
+        <button
+          onClick={handleShare}
+          aria-label="Share listing"
+          className="ml-auto rounded-full p-2 hover:bg-secondary"
+        >
+          <Share2 className="size-5" />
+        </button>
       </header>
 
       <ListingGallery paths={galleryPaths(listing)} alt={listing.title} />
@@ -257,6 +275,13 @@ function ListingPage() {
             </p>
           </div>
         </Link>
+
+        <button
+          onClick={handleShare}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-border py-3 text-sm font-bold"
+        >
+          <Share2 className="size-4" /> Share this listing
+        </button>
 
         <p className="rounded-lg bg-secondary p-3 text-xs text-muted-foreground">
           Reezap connects you with the vendor. Payment and delivery are arranged directly between
