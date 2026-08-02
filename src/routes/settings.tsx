@@ -148,11 +148,22 @@ function SettingsPage() {
             Saved listings
             <ChevronRight className="ml-auto size-4 text-muted-foreground" />
           </Link>
-          <Link to="/edit-profile" className="flex items-center gap-3 p-4 text-sm font-semibold">
-            <BadgeCheck className="size-4 text-primary" />
-            {profile?.is_verified ? "Your account is verified." : "Get verified"}
-            <ChevronRight className="ml-auto size-4 text-muted-foreground" />
-          </Link>
+          {profile?.is_verified ? (
+            <div
+              aria-disabled="true"
+              className="pointer-events-none flex items-center gap-3 p-4 text-sm font-semibold opacity-50"
+            >
+              <BadgeCheck className="size-4 text-primary" />
+              Your account is verified.
+            </div>
+          ) : (
+            <Link to="/edit-profile" className="flex items-center gap-3 p-4 text-sm font-semibold">
+              <BadgeCheck className="size-4 text-primary" />
+              Get verified
+              <ChevronRight className="ml-auto size-4 text-muted-foreground" />
+            </Link>
+          )}
+
           <Link to="/premium" className="flex items-center gap-3 p-4 text-sm font-semibold">
             <Crown className="size-4 text-primary" />
             {profile?.is_premium ? "Manage premium" : "Go premium"}
