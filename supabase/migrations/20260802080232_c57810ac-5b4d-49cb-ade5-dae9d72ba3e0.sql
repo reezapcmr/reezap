@@ -1,0 +1,1 @@
+GRANT SELECT (notify_likes) ON public.profiles TO anon, authenticated;
