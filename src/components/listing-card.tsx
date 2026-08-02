@@ -281,6 +281,18 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
           >
             <Bookmark className={cn("size-5", saved && "fill-current")} />
           </button>
+          <button
+            onClick={async () => {
+              const result = await shareListing(listing);
+              if (result === "copied") toast.success("Link copied — paste it anywhere");
+              else if (result === "failed") toast.error("Could not share this listing");
+            }}
+            aria-label="Share"
+            className="flex items-center gap-1.5 text-sm"
+          >
+            <Share2 className="size-5" />
+          </button>
+
           <span className="flex items-center gap-1.5 text-xs" aria-label="Views">
             <Eye className="size-4" />
             <span className="font-semibold">{listing.view_count ?? 0}</span>
