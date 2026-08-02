@@ -130,16 +130,27 @@ function NotificationsPage() {
       <TopBar
         title="Notifications"
         right={
-          unread > 0 ? (
-            <button
-              onClick={markAllRead}
-              className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-primary hover:bg-secondary"
-            >
-              <CheckCheck className="size-4" /> Mark all read
-            </button>
+          items?.length ? (
+            <div className="flex items-center gap-1">
+              {unread > 0 && (
+                <button
+                  onClick={markAllRead}
+                  className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-primary hover:bg-secondary"
+                >
+                  <CheckCheck className="size-4" /> Mark all read
+                </button>
+              )}
+              <button
+                onClick={deleteAll}
+                className="flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-semibold text-destructive hover:bg-secondary"
+              >
+                <Trash2 className="size-4" /> Delete all
+              </button>
+            </div>
           ) : undefined
         }
       />
+
       {!items?.length && (
         <div className="px-6 py-20 text-center">
           <Bell className="mx-auto size-7 text-muted-foreground" />
