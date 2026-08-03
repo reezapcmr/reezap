@@ -101,10 +101,60 @@ export function looksLikeSpam(text: string) {
 
 /**
  * Buckets are private, so every stored object path needs a signed URL.
- * Signed URLs are cached in memory so re-renders and repeated cards don't
- * hammer storage (which previously left images blank once signed in).
+ * Signing is expensive when a feed renders 30 cards, so we do three things:
+ *  1. cache signed URLs in memory for their lifetime,
+ *  2. de-duplicate in-flight requests for the same path,
+ *  3. batch every request made in the same tick into ONE `createSignedUrls`
+ *     call per bucket (30 round trips become 1).
  */
 const signedCache = new Map<string, { url: string; expires: number }>();
+const inFlight = new Map<string, Promise<string | null>>();
+
+type SignBatch = { paths: string[]; resolvers: Map<string, (url: string | null) => void> };
+const batches = new Map<string, SignBatch>();
+
+async function flushBatch(bucket: string) {
+  const batch = batches.get(bucket);
+  if (!batch) return;
+  batches.delete(bucket);
+
+  let signed = new Map<string, string | null>();
+  try {
+    const { data } = await supabase.storage.from(bucket).createSignedUrls(batch.paths, 3600);
+    signed = new Map((data ?? []).map((d) => [d.path ?? "", d.signedUrl ?? null]));
+  } catch {
+    // fall through: everyone resolves to null and falls back to a placeholder
+  }
+
+  for (const path of batch.paths) {
+    const url = signed.get(path) ?? null;
+    if (url) {
+      signedCache.set(`${bucket}:${path}`, { url, expires: Date.now() + 50 * 60 * 1000 });
+    }
+    batch.resolvers.get(path)?.(url);
+  }
+}
+
+function enqueueSign(bucket: string, path: string) {
+  return new Promise<string | null>((resolve) => {
+    let batch = batches.get(bucket);
+    if (!batch) {
+      batch = { paths: [], resolvers: new Map() };
+      batches.set(bucket, batch);
+      setTimeout(() => void flushBatch(bucket), 10);
+    }
+    const existing = batch.resolvers.get(path);
+    if (existing) {
+      batch.resolvers.set(path, (url) => {
+        existing(url);
+        resolve(url);
+      });
+    } else {
+      batch.paths.push(path);
+      batch.resolvers.set(path, resolve);
+    }
+  });
+}
 
 export async function resolveMedia(path: string | null | undefined, bucket = "listing-media") {
   if (!path) return null;
@@ -114,16 +164,19 @@ export async function resolveMedia(path: string | null | undefined, bucket = "li
   const hit = signedCache.get(key);
   if (hit && hit.expires > Date.now()) return hit.url;
 
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 3600);
-  if (error || !data?.signedUrl) return null;
-  signedCache.set(key, { url: data.signedUrl, expires: Date.now() + 50 * 60 * 1000 });
-  return data.signedUrl;
+  const pending = inFlight.get(key);
+  if (pending) return pending;
+
+  const request = enqueueSign(bucket, path).finally(() => inFlight.delete(key));
+  inFlight.set(key, request);
+  return request;
 }
 
 export async function resolveMediaList(paths: (string | null)[], bucket = "listing-media") {
   const urls = await Promise.all(paths.map((p) => resolveMedia(p, bucket)));
   return urls.filter((u): u is string => !!u);
 }
+
 
 /** Normalises a listing's gallery: media_urls first, falling back to media_url. */
 export function galleryPaths(listing: {
