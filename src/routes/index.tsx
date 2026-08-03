@@ -195,7 +195,20 @@ function Feed() {
         </div>
       )}
 
-      {listings?.map((l) => <ListingCard key={l.id} listing={l} />)}
+      {listings.map((l: FeedListing) => <ListingCard key={l.id} listing={l} />)}
+
+      {hasNextPage && (
+        <div className="px-4 py-6 text-center">
+          <button
+            onClick={() => void fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="rounded-full border border-border px-5 py-2.5 text-sm font-semibold disabled:opacity-50"
+          >
+            {isFetchingNextPage ? "Loading…" : "Load more"}
+          </button>
+        </div>
+      )}
+
     </AppShell>
   );
 }
