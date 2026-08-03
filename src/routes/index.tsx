@@ -3,13 +3,13 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
-import { ListingCard, type FeedListing } from "@/components/listing-card";
+import { ListingCard, ListingCardSkeleton, type FeedListing } from "@/components/listing-card";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { MapPin, SlidersHorizontal } from "lucide-react";
+import { MapPin, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { LISTING_SELECT } from "@/lib/reezap";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/")({
