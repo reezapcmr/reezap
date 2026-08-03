@@ -98,8 +98,20 @@ function Feed() {
           </span>
         }
         right={
-          <Sheet>
-            <SheetTrigger asChild>
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Refresh feed"
+              onClick={async () => {
+                await refetch();
+                toast.success("Feed updated");
+              }}
+              disabled={isRefetching}
+              className="flex size-9 items-center justify-center rounded-full border border-border disabled:opacity-60"
+            >
+              <RefreshCw className={cn("size-4", isRefetching && "animate-spin")} />
+            </button>
+            <Sheet>
+              <SheetTrigger asChild>
               <button
                 aria-label="Filter categories"
                 className={cn(
