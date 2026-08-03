@@ -14,6 +14,7 @@ import {
   shareListing,
   timeAgo,
 } from "@/lib/reezap";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 
