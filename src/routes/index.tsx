@@ -34,6 +34,8 @@ export const Route = createFileRoute("/")({
   component: Feed,
 });
 
+const PAGE_SIZE = 12;
+
 function Feed() {
   const { profile } = useAuth();
   const [scope, setScope] = useState<"near" | "all">("near");
@@ -41,6 +43,7 @@ function Feed() {
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
+    staleTime: 60 * 60 * 1000,
     queryFn: async () => {
       const { data } = await supabase.from("categories").select("id,name,emoji,slug").order("name");
       return data ?? [];
@@ -49,9 +52,19 @@ function Feed() {
 
   const townId = scope === "near" ? (profile?.town_id ?? null) : null;
 
-  const { data: listings, isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["feed", townId, categoryId],
-    queryFn: async () => {
+    initialPageParam: 0,
+    getNextPageParam: (last: FeedListing[], pages) =>
+      last.length < PAGE_SIZE ? undefined : pages.length * PAGE_SIZE,
+    queryFn: async ({ pageParam }) => {
+      const from = pageParam as number;
       let q = supabase
         .from("listings")
         .select(LISTING_SELECT)
@@ -60,7 +73,7 @@ function Feed() {
         // Premium pinned posts ride at the top.
         .order("is_pinned", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(30);
+        .range(from, from + PAGE_SIZE - 1);
       if (townId) q = q.eq("town_id", townId);
       if (categoryId) q = q.eq("category_id", categoryId);
       const { data, error } = await q;
@@ -68,6 +81,9 @@ function Feed() {
       return (data ?? []) as unknown as FeedListing[];
     },
   });
+
+  const listings = data?.pages.flat() ?? [];
+
 
   const activeCategory = categories?.find((c) => c.id === categoryId) ?? null;
 
