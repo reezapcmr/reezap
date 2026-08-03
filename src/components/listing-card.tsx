@@ -145,67 +145,32 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
 
 export function ListingCard({ listing }: { listing: FeedListing }) {
   const { user } = useAuth();
-  const qc = useQueryClient();
-  const [saved, setSaved] = useState(false);
-  const [liked, setLiked] = useState(false);
-  const [likes, setLikes] = useState(listing.likes?.[0]?.count ?? 0);
+  const activity = useViewerActivity();
+  const toggleActivity = useToggleActivity();
+  const [likeDelta, setLikeDelta] = useState(0);
   const vendor = listing.profiles;
   const photos = galleryPaths(listing);
 
-  useEffect(() => {
-    setLikes(listing.likes?.[0]?.count ?? 0);
-  }, [listing.likes]);
+  const saved = activity.bookmarks.has(listing.id);
+  const liked = activity.likes.has(listing.id);
+  const likes = Math.max(0, (listing.likes?.[0]?.count ?? 0) + likeDelta);
 
-  useEffect(() => {
-    if (!user) {
-      setSaved(false);
-      setLiked(false);
-      return;
-    }
-    let active = true;
-    void (async () => {
-      const [{ data: b }, { data: l }] = await Promise.all([
-        supabase
-          .from("bookmarks")
-          .select("listing_id")
-          .eq("listing_id", listing.id)
-          .eq("user_id", user.id)
-          .maybeSingle(),
-        supabase
-          .from("likes")
-          .select("listing_id")
-          .eq("listing_id", listing.id)
-          .eq("user_id", user.id)
-          .maybeSingle(),
-      ]);
-      if (!active) return;
-      setSaved(!!b);
-      setLiked(!!l);
-    })();
-    return () => {
-      active = false;
-    };
-  }, [user, listing.id]);
-
-  async function toggle(kind: "bookmarks" | "likes", on: boolean, set: (v: boolean) => void) {
+  function toggle(kind: "bookmarks" | "likes", on: boolean) {
     if (!user) {
       toast("Sign in to save and like listings");
       return;
     }
-    set(!on);
-    if (kind === "likes") setLikes((n) => Math.max(0, n + (on ? -1 : 1)));
-
-    const { error } = on
-      ? await supabase.from(kind).delete().eq("listing_id", listing.id).eq("user_id", user.id)
-      : await supabase.from(kind).insert({ listing_id: listing.id, user_id: user.id });
-
-    if (error) {
-      set(on);
-      if (kind === "likes") setLikes((n) => Math.max(0, n + (on ? 1 : -1)));
-      return;
-    }
-    void qc.invalidateQueries({ queryKey: ["saved"] });
+    if (kind === "likes") setLikeDelta((d) => d + (on ? -1 : 1));
+    toggleActivity.mutate(
+      { kind, listingId: listing.id, on },
+      {
+        onError: () => {
+          if (kind === "likes") setLikeDelta((d) => d + (on ? 1 : -1));
+        },
+      },
+    );
   }
+
 
   const countdown = expiresIn(listing.expires_at);
 
