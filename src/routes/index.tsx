@@ -55,6 +55,8 @@ function Feed() {
   const {
     data,
     isLoading,
+    refetch,
+    isRefetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
