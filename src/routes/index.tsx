@@ -209,6 +209,8 @@ function Feed() {
 
       {listings.map((l: FeedListing) => <ListingCard key={l.id} listing={l} />)}
 
+      {isFetchingNextPage && [0, 1].map((i) => <ListingCardSkeleton key={`next-${i}`} />)}
+
       {hasNextPage && (
         <div className="px-4 py-6 text-center">
           <button
