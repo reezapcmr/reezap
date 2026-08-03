@@ -151,7 +151,8 @@ function Feed() {
                 ))}
               </div>
             </SheetContent>
-          </Sheet>
+            </Sheet>
+          </div>
         }
       />
       <section className="border-b border-border px-4 py-5">
