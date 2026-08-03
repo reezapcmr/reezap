@@ -233,7 +233,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
 
         <div className="mt-3 flex items-center gap-4 text-muted-foreground">
           <button
-            onClick={() => toggle("likes", liked, setLiked)}
+            onClick={() => toggle("likes", liked)}
             aria-label="Like"
             className={cn("flex items-center gap-1.5 text-sm", liked && "text-primary")}
           >
@@ -241,7 +241,8 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
             {likes > 0 && <span className="text-xs font-semibold">{likes}</span>}
           </button>
           <button
-            onClick={() => toggle("bookmarks", saved, setSaved)}
+            onClick={() => toggle("bookmarks", saved)}
+
             aria-label="Save"
             className={cn("flex items-center gap-1.5 text-sm", saved && "text-primary")}
           >
