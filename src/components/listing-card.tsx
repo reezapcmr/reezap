@@ -14,6 +14,7 @@ import {
   shareListing,
   timeAgo,
 } from "@/lib/reezap";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
 
@@ -60,28 +61,82 @@ function Placeholder({ className }: { className?: string }) {
 export function ListingMedia({ path, alt }: { path: string | null; alt: string }) {
   const [src, setSrc] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [resolving, setResolving] = useState(Boolean(path));
 
   useEffect(() => {
     let active = true;
     setFailed(false);
     setSrc(null);
-    void resolveMedia(path).then((url) => active && setSrc(url));
+    setLoaded(false);
+    setResolving(Boolean(path));
+    void resolveMedia(path).then((url) => {
+      if (!active) return;
+      setSrc(url);
+      setResolving(false);
+    });
     return () => {
       active = false;
     };
   }, [path]);
 
-  if (!src || failed) return <Placeholder />;
+  // Progressive: show a shimmering block while the URL resolves and the bytes arrive.
+  if (failed || (!src && !resolving)) return <Placeholder />;
+
   return (
-    <img
-      src={src}
-      alt={alt}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      className="aspect-[4/3] w-full object-cover"
-      width={800}
-      height={600}
-    />
+    <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
+      {!loaded && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
+      {src && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+          className={cn(
+            "size-full object-cover transition-opacity duration-300",
+            loaded ? "opacity-100" : "opacity-0",
+          )}
+          width={800}
+          height={600}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Placeholder card shown while the feed's first page is loading. */
+export function ListingCardSkeleton() {
+  return (
+    <article className="border-b border-border py-4">
+      <div className="flex items-center gap-3 px-4">
+        <Skeleton className="size-10 shrink-0 rounded-full" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-3.5 w-32" />
+          <Skeleton className="h-3 w-24" />
+        </div>
+        <Skeleton className="h-6 w-20 rounded-full" />
+      </div>
+      <div className="mt-3 px-0">
+        <Skeleton className="aspect-[4/3] w-full rounded-xl" />
+      </div>
+      <div className="mt-3 space-y-2 px-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-full" />
+          </div>
+          <Skeleton className="h-7 w-20 rounded-full" />
+        </div>
+        <div className="flex items-center gap-4 pt-1">
+          <Skeleton className="size-5 rounded-full" />
+          <Skeleton className="size-5 rounded-full" />
+          <Skeleton className="size-5 rounded-full" />
+          <Skeleton className="h-4 w-10" />
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -89,14 +144,19 @@ export function ListingMedia({ path, alt }: { path: string | null; alt: string }
 export function ListingGallery({ paths, alt }: { paths: string[]; alt: string }) {
   const [urls, setUrls] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
+  const [resolving, setResolving] = useState(paths.length > 0);
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
   const key = paths.join("|");
 
   useEffect(() => {
     let active = true;
+    setResolving(paths.length > 0);
+    setLoaded({});
     void resolveMediaList(paths).then((u) => {
       if (!active) return;
       setUrls(u);
       setIndex(0);
+      setResolving(false);
     });
     return () => {
       active = false;
@@ -104,6 +164,7 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
+  if (resolving) return <Skeleton className="aspect-[4/3] w-full rounded-none" />;
   if (!urls.length) return <Placeholder />;
 
   return (
@@ -116,14 +177,21 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
         }}
       >
         {urls.map((u, i) => (
-          <img
-            key={u}
-            src={u}
-            alt={`${alt} — photo ${i + 1}`}
-            className="aspect-[4/3] w-full shrink-0 snap-center object-cover"
-            width={800}
-            height={600}
-          />
+          <div key={u} className="relative aspect-[4/3] w-full shrink-0 snap-center bg-secondary">
+            {!loaded[u] && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
+            <img
+              src={u}
+              alt={`${alt} — photo ${i + 1}`}
+              decoding="async"
+              onLoad={() => setLoaded((p) => ({ ...p, [u]: true }))}
+              className={cn(
+                "size-full object-cover transition-opacity duration-300",
+                loaded[u] ? "opacity-100" : "opacity-0",
+              )}
+              width={800}
+              height={600}
+            />
+          </div>
         ))}
       </div>
       {urls.length > 1 && (

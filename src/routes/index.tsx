@@ -3,13 +3,13 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
-import { ListingCard, type FeedListing } from "@/components/listing-card";
+import { ListingCard, ListingCardSkeleton, type FeedListing } from "@/components/listing-card";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { MapPin, SlidersHorizontal } from "lucide-react";
+import { MapPin, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { LISTING_SELECT } from "@/lib/reezap";
+import { toast } from "sonner";
 
 
 export const Route = createFileRoute("/")({
@@ -55,6 +55,8 @@ function Feed() {
   const {
     data,
     isLoading,
+    refetch,
+    isRefetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -96,8 +98,20 @@ function Feed() {
           </span>
         }
         right={
-          <Sheet>
-            <SheetTrigger asChild>
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Refresh feed"
+              onClick={async () => {
+                await refetch();
+                toast.success("Feed updated");
+              }}
+              disabled={isRefetching}
+              className="flex size-9 items-center justify-center rounded-full border border-border disabled:opacity-60"
+            >
+              <RefreshCw className={cn("size-4", isRefetching && "animate-spin")} />
+            </button>
+            <Sheet>
+              <SheetTrigger asChild>
               <button
                 aria-label="Filter categories"
                 className={cn(
@@ -137,7 +151,8 @@ function Feed() {
                 ))}
               </div>
             </SheetContent>
-          </Sheet>
+            </Sheet>
+          </div>
         }
       />
       <section className="border-b border-border px-4 py-5">
@@ -170,12 +185,9 @@ function Feed() {
 
 
       {isLoading && (
-        <div className="space-y-6 p-4">
-          {[0, 1].map((i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-10 w-1/2" />
-              <Skeleton className="aspect-[4/3] w-full" />
-            </div>
+        <div aria-busy="true" aria-label="Loading listings">
+          {[0, 1, 2].map((i) => (
+            <ListingCardSkeleton key={i} />
           ))}
         </div>
       )}
@@ -196,6 +208,8 @@ function Feed() {
       )}
 
       {listings.map((l: FeedListing) => <ListingCard key={l.id} listing={l} />)}
+
+      {isFetchingNextPage && [0, 1].map((i) => <ListingCardSkeleton key={`next-${i}`} />)}
 
       {hasNextPage && (
         <div className="px-4 py-6 text-center">
