@@ -1,9 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { BadgeCheck, Bookmark, Eye, Heart, ImageIcon, MapPin, Pin, Share2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useToggleActivity, useViewerActivity } from "@/hooks/use-viewer-activity";
 import { cn } from "@/lib/utils";
 import {
   expiresIn,
@@ -16,6 +15,7 @@ import {
   timeAgo,
 } from "@/lib/reezap";
 import { toast } from "sonner";
+
 
 export type FeedListing = {
   id: string;
