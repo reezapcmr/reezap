@@ -172,12 +172,9 @@ function Feed() {
 
 
       {isLoading && (
-        <div className="space-y-6 p-4">
-          {[0, 1].map((i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-10 w-1/2" />
-              <Skeleton className="aspect-[4/3] w-full" />
-            </div>
+        <div aria-busy="true" aria-label="Loading listings">
+          {[0, 1, 2].map((i) => (
+            <ListingCardSkeleton key={i} />
           ))}
         </div>
       )}
