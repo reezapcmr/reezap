@@ -144,14 +144,19 @@ export function ListingCardSkeleton() {
 export function ListingGallery({ paths, alt }: { paths: string[]; alt: string }) {
   const [urls, setUrls] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
+  const [resolving, setResolving] = useState(paths.length > 0);
+  const [loaded, setLoaded] = useState<Record<string, boolean>>({});
   const key = paths.join("|");
 
   useEffect(() => {
     let active = true;
+    setResolving(paths.length > 0);
+    setLoaded({});
     void resolveMediaList(paths).then((u) => {
       if (!active) return;
       setUrls(u);
       setIndex(0);
+      setResolving(false);
     });
     return () => {
       active = false;
@@ -159,6 +164,7 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 
+  if (resolving) return <Skeleton className="aspect-[4/3] w-full rounded-none" />;
   if (!urls.length) return <Placeholder />;
 
   return (
@@ -171,14 +177,21 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
         }}
       >
         {urls.map((u, i) => (
-          <img
-            key={u}
-            src={u}
-            alt={`${alt} — photo ${i + 1}`}
-            className="aspect-[4/3] w-full shrink-0 snap-center object-cover"
-            width={800}
-            height={600}
-          />
+          <div key={u} className="relative aspect-[4/3] w-full shrink-0 snap-center bg-secondary">
+            {!loaded[u] && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
+            <img
+              src={u}
+              alt={`${alt} — photo ${i + 1}`}
+              decoding="async"
+              onLoad={() => setLoaded((p) => ({ ...p, [u]: true }))}
+              className={cn(
+                "size-full object-cover transition-opacity duration-300",
+                loaded[u] ? "opacity-100" : "opacity-0",
+              )}
+              width={800}
+              height={600}
+            />
+          </div>
         ))}
       </div>
       {urls.length > 1 && (
