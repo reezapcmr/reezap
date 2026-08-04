@@ -13,6 +13,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PremiumRouteImport } from './routes/premium'
 import { Route as PostRouteImport } from './routes/post'
@@ -43,6 +44,11 @@ const SearchRoute = SearchRouteImport.update({
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/post': typeof PostRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -128,6 +135,7 @@ export interface FileRoutesByTo {
   '/post': typeof PostRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/post': typeof PostRoute
   '/premium': typeof PremiumRoute
   '/profile': typeof ProfileRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/saved': typeof SavedRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/post'
     | '/premium'
     | '/profile'
+    | '/reset-password'
     | '/saved'
     | '/search'
     | '/settings'
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/post'
     | '/premium'
     | '/profile'
+    | '/reset-password'
     | '/saved'
     | '/search'
     | '/settings'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/post'
     | '/premium'
     | '/profile'
+    | '/reset-password'
     | '/saved'
     | '/search'
     | '/settings'
@@ -217,6 +229,7 @@ export interface RootRouteChildren {
   PostRoute: typeof PostRoute
   PremiumRoute: typeof PremiumRoute
   ProfileRoute: typeof ProfileRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SavedRoute: typeof SavedRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/saved'
       preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -345,6 +365,7 @@ const rootRouteChildren: RootRouteChildren = {
   PostRoute: PostRoute,
   PremiumRoute: PremiumRoute,
   ProfileRoute: ProfileRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SavedRoute: SavedRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
