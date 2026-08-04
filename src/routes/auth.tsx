@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { normalizePhone } from "@/lib/reezap";
 
 export const Route = createFileRoute("/auth")({
@@ -46,7 +46,28 @@ function AuthPage() {
   const [displayName, setDisplayName] = useState("");
   const [phone, setPhone] = useState("");
   const [agree, setAgree] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  async function handleForgotPassword() {
+    const target = email.trim();
+    if (!target) {
+      toast.error("Enter your email first, then tap “Forgot password?”");
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(target, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success("Password reset link sent — check your email");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not send reset link");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function handleGoogle() {
     const result = await lovable.auth.signInWithOAuth("google", {
