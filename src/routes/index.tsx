@@ -55,11 +55,13 @@ function Feed() {
   const {
     data,
     isLoading,
+    isError,
     refetch,
     isRefetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+
   } = useInfiniteQuery({
     queryKey: ["feed", townId, categoryId],
     initialPageParam: 0,
