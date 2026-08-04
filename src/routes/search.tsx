@@ -30,9 +30,45 @@ export const Route = createFileRoute("/search")({
 });
 
 
+const RECENTS_KEY = "reezap:recent-searches";
+
 function SearchPage() {
   const [q, setQ] = useState("");
+  const [term, setTerm] = useState("");
   const [townId, setTownId] = useState<string | null>(null);
+  const [recents, setRecents] = useState<string[]>([]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(RECENTS_KEY);
+      if (raw) setRecents(JSON.parse(raw) as string[]);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Debounce typing so we don't fire a query on every keystroke.
+  useEffect(() => {
+    const id = setTimeout(() => setTerm(q.trim()), 300);
+    return () => clearTimeout(id);
+  }, [q]);
+
+  // Remember searches that actually returned something worth repeating.
+  useEffect(() => {
+    if (term.length < 2) return;
+    const id = setTimeout(() => {
+      setRecents((prev) => {
+        const next = [term, ...prev.filter((r) => r !== term)].slice(0, 6);
+        try {
+          localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
+        } catch {
+          /* ignore */
+        }
+        return next;
+      });
+    }, 1200);
+    return () => clearTimeout(id);
+  }, [term]);
 
   const { data: towns } = useQuery({
     queryKey: ["towns"],
@@ -42,14 +78,14 @@ function SearchPage() {
     },
   });
 
-  const term = useMemo(() => q.trim(), [q]);
-
-  const { data: listings } = useQuery({
+  const { data: listings, isLoading: loadingListings } = useQuery({
     queryKey: ["search-listings", term, townId],
     queryFn: async () => {
       let query = supabase
         .from("listings")
         .select(LISTING_SELECT)
+        // Expired posts shouldn't surface in search either.
+        .gt("expires_at", new Date().toISOString())
         .order("created_at", { ascending: false })
         .limit(30);
       if (term) query = query.or(`title.ilike.%${term}%,description.ilike.%${term}%`);
@@ -59,7 +95,7 @@ function SearchPage() {
     },
   });
 
-  const { data: vendors } = useQuery({
+  const { data: vendors, isLoading: loadingVendors } = useQuery({
     queryKey: ["search-vendors", term, townId],
     queryFn: async () => {
       let query = supabase
@@ -73,6 +109,7 @@ function SearchPage() {
       return data ?? [];
     },
   });
+
 
   return (
     <AppShell>
