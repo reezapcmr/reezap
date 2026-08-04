@@ -183,6 +183,33 @@ function Feed() {
         </div>
       </section>
 
+      {/* One-tap category rail so browsing doesn't need the filter sheet. */}
+      <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
+        <button
+          onClick={() => setCategoryId(null)}
+          className={cn(
+            "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm font-medium",
+            !categoryId ? "border-primary text-primary" : "text-muted-foreground",
+          )}
+        >
+          All
+        </button>
+        {categories?.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}
+            className={cn(
+              "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm font-medium",
+              categoryId === c.id ? "border-primary text-primary" : "text-muted-foreground",
+            )}
+          >
+            {c.emoji} {c.name}
+          </button>
+        ))}
+      </div>
+
+
+
 
       {isLoading && (
         <div aria-busy="true" aria-label="Loading listings">
