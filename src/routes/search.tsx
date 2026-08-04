@@ -121,9 +121,46 @@ function SearchPage() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search fish, braids, phone repair…"
-            className="rounded-full pl-9"
+            className="rounded-full pl-9 pr-9"
           />
+          {q && (
+            <button
+              aria-label="Clear search"
+              onClick={() => setQ("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
+        {!q && recents.length > 0 && (
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
+            <span className="shrink-0 text-xs text-muted-foreground">Recent</span>
+            {recents.map((r) => (
+              <button
+                key={r}
+                onClick={() => setQ(r)}
+                className="shrink-0 rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground"
+              >
+                {r}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                setRecents([]);
+                try {
+                  localStorage.removeItem(RECENTS_KEY);
+                } catch {
+                  /* ignore */
+                }
+              }}
+              className="shrink-0 text-xs text-muted-foreground underline"
+            >
+              Clear
+            </button>
+          </div>
+        )}
+
         <div className="no-scrollbar flex gap-2 overflow-x-auto">
           <button
             onClick={() => setTownId(null)}
