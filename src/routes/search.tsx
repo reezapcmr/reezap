@@ -197,20 +197,35 @@ function SearchPage() {
         </TabsList>
 
         <TabsContent value="listings">
-          {!listings?.length && (
+          {loadingListings && [0, 1, 2].map((i) => <ListingCardSkeleton key={i} />)}
+          {!loadingListings && !listings?.length && (
             <p className="px-6 py-12 text-center text-sm text-muted-foreground">
               No listings match that search.
             </p>
           )}
-          {listings?.map((l) => <ListingCard key={l.id} listing={l} />)}
+          {!loadingListings && listings?.map((l) => <ListingCard key={l.id} listing={l} />)}
         </TabsContent>
 
         <TabsContent value="vendors" className="divide-y divide-border">
-          {!vendors?.length && (
+          {loadingVendors && (
+            <div className="space-y-4 p-4">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <Skeleton className="size-11 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-3.5 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!loadingVendors && !vendors?.length && (
             <p className="px-6 py-12 text-center text-sm text-muted-foreground">
               No vendors match that search.
             </p>
           )}
+
           {vendors?.map((v) => (
             <Link
               key={v.id}
