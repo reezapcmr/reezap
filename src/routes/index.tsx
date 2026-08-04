@@ -219,7 +219,22 @@ function Feed() {
         </div>
       )}
 
-      {!isLoading && !listings?.length && (
+      {isError && !listings.length && (
+        <div className="px-6 py-16 text-center">
+          <p className="font-semibold">Couldn't load the feed</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Check your connection and try again.
+          </p>
+          <button
+            onClick={() => void refetch()}
+            className="mt-5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !isError && !listings?.length && (
         <div className="px-6 py-16 text-center">
           <p className="font-semibold">Nothing here yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -238,6 +253,9 @@ function Feed() {
 
       {isFetchingNextPage && [0, 1].map((i) => <ListingCardSkeleton key={`next-${i}`} />)}
 
+      {/* Auto-load the next page as the reader approaches the end. */}
+      <div ref={sentinelRef} aria-hidden className="h-px" />
+
       {hasNextPage && (
         <div className="px-4 py-6 text-center">
           <button
@@ -249,6 +267,7 @@ function Feed() {
           </button>
         </div>
       )}
+
 
     </AppShell>
   );
