@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell, TopBar } from "@/components/app-shell";
 import { ListingCard, ListingCardSkeleton, type FeedListing } from "@/components/listing-card";
@@ -55,11 +55,13 @@ function Feed() {
   const {
     data,
     isLoading,
+    isError,
     refetch,
     isRefetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+
   } = useInfiniteQuery({
     queryKey: ["feed", townId, categoryId],
     initialPageParam: 0,
@@ -83,6 +85,21 @@ function Feed() {
       return (data ?? []) as unknown as FeedListing[];
     },
   });
+
+  // Infinite scroll: fetch the next page when the sentinel scrolls into view.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasNextPage || isFetchingNextPage) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) void fetchNextPage();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const listings = data?.pages.flat() ?? [];
 
@@ -183,6 +200,33 @@ function Feed() {
         </div>
       </section>
 
+      {/* One-tap category rail so browsing doesn't need the filter sheet. */}
+      <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
+        <button
+          onClick={() => setCategoryId(null)}
+          className={cn(
+            "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm font-medium",
+            !categoryId ? "border-primary text-primary" : "text-muted-foreground",
+          )}
+        >
+          All
+        </button>
+        {categories?.map((c) => (
+          <button
+            key={c.id}
+            onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}
+            className={cn(
+              "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm font-medium",
+              categoryId === c.id ? "border-primary text-primary" : "text-muted-foreground",
+            )}
+          >
+            {c.emoji} {c.name}
+          </button>
+        ))}
+      </div>
+
+
+
 
       {isLoading && (
         <div aria-busy="true" aria-label="Loading listings">
@@ -192,7 +236,22 @@ function Feed() {
         </div>
       )}
 
-      {!isLoading && !listings?.length && (
+      {isError && !listings.length && (
+        <div className="px-6 py-16 text-center">
+          <p className="font-semibold">Couldn't load the feed</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Check your connection and try again.
+          </p>
+          <button
+            onClick={() => void refetch()}
+            className="mt-5 rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
+      {!isLoading && !isError && !listings?.length && (
         <div className="px-6 py-16 text-center">
           <p className="font-semibold">Nothing here yet</p>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -211,6 +270,9 @@ function Feed() {
 
       {isFetchingNextPage && [0, 1].map((i) => <ListingCardSkeleton key={`next-${i}`} />)}
 
+      {/* Auto-load the next page as the reader approaches the end. */}
+      <div ref={sentinelRef} aria-hidden className="h-px" />
+
       {hasNextPage && (
         <div className="px-4 py-6 text-center">
           <button
@@ -222,6 +284,7 @@ function Feed() {
           </button>
         </div>
       )}
+
 
     </AppShell>
   );
