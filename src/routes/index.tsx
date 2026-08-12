@@ -323,7 +323,16 @@ function Feed() {
         </div>
       )}
 
-
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top"
+          className="fixed bottom-24 right-4 z-40 flex size-11 items-center justify-center rounded-full border border-border bg-background/90 shadow-lg backdrop-blur md:bottom-8"
+        >
+          <ArrowUp className="size-5" />
+        </button>
+      )}
     </AppShell>
+
   );
 }
