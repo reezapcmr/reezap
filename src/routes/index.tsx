@@ -7,7 +7,7 @@ import { ListingCard, ListingCardSkeleton, type FeedListing } from "@/components
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { MapPin, RefreshCw, SlidersHorizontal } from "lucide-react";
+import { ArrowUp, MapPin, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { LISTING_SELECT } from "@/lib/reezap";
 import { toast } from "sonner";
 
@@ -36,10 +36,26 @@ export const Route = createFileRoute("/")({
 
 const PAGE_SIZE = 12;
 
+const SORTS = {
+  new: { label: "Newest", column: "created_at", ascending: false },
+  popular: { label: "Most viewed", column: "view_count", ascending: false },
+  cheap: { label: "Lowest price", column: "price", ascending: true },
+} as const;
+type SortKey = keyof typeof SORTS;
+
 function Feed() {
   const { profile } = useAuth();
   const [scope, setScope] = useState<"near" | "all">("near");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortKey>("new");
+  const [showTop, setShowTop] = useState(false);
+
+  // "Back to top" appears once the reader is a few screens deep.
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 1200);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -63,12 +79,13 @@ function Feed() {
     isFetchingNextPage,
 
   } = useInfiniteQuery({
-    queryKey: ["feed", townId, categoryId],
+    queryKey: ["feed", townId, categoryId, sort],
     initialPageParam: 0,
     getNextPageParam: (last: FeedListing[], pages) =>
       last.length < PAGE_SIZE ? undefined : pages.length * PAGE_SIZE,
     queryFn: async ({ pageParam }) => {
       const from = pageParam as number;
+      const s = SORTS[sort];
       let q = supabase
         .from("listings")
         .select(LISTING_SELECT)
@@ -76,7 +93,7 @@ function Feed() {
         .gt("expires_at", new Date().toISOString())
         // Premium pinned posts ride at the top.
         .order("is_pinned", { ascending: false })
-        .order("created_at", { ascending: false })
+        .order(s.column, { ascending: s.ascending, nullsFirst: false })
         .range(from, from + PAGE_SIZE - 1);
       if (townId) q = q.eq("town_id", townId);
       if (categoryId) q = q.eq("category_id", categoryId);
@@ -198,7 +215,28 @@ function Feed() {
             </button>
           ))}
         </div>
+        {/* Sort control so shoppers can chase price or popularity, not just recency. */}
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Sort
+          </span>
+          {(Object.keys(SORTS) as SortKey[]).map((k) => (
+            <button
+              key={k}
+              onClick={() => setSort(k)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                sort === k
+                  ? "border-primary text-primary"
+                  : "border-border text-muted-foreground",
+              )}
+            >
+              {SORTS[k].label}
+            </button>
+          ))}
+        </div>
       </section>
+
 
       {/* One-tap category rail so browsing doesn't need the filter sheet. */}
       <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
@@ -285,7 +323,16 @@ function Feed() {
         </div>
       )}
 
-
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top"
+          className="fixed bottom-24 right-4 z-40 flex size-11 items-center justify-center rounded-full border border-border bg-background/90 shadow-lg backdrop-blur md:bottom-8"
+        >
+          <ArrowUp className="size-5" />
+        </button>
+      )}
     </AppShell>
+
   );
 }
