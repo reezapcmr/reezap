@@ -140,12 +140,103 @@ export function ListingCardSkeleton() {
   );
 }
 
+/** Full-screen viewer: tap a photo to see it at full size, tap again to zoom in. */
+function Lightbox({
+  urls,
+  index,
+  alt,
+  onClose,
+}: {
+  urls: string[];
+  index: number;
+  alt: string;
+  onClose: () => void;
+}) {
+  const [i, setI] = useState(index);
+  const [zoomed, setZoomed] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") setI((v) => Math.min(urls.length - 1, v + 1));
+      if (e.key === "ArrowLeft") setI((v) => Math.max(0, v - 1));
+    };
+    document.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose, urls.length]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo viewer"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close photo"
+        className="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border border-border bg-background/80"
+      >
+        <X className="size-5" />
+      </button>
+
+      <div className="h-full w-full overflow-auto" onClick={(e) => e.stopPropagation()}>
+        <img
+          src={urls[i]}
+          alt={`${alt} — photo ${i + 1}`}
+          onClick={() => setZoomed((z) => !z)}
+          className={cn(
+            "mx-auto transition-transform duration-200",
+            zoomed
+              ? "max-w-none cursor-zoom-out scale-[1.8] origin-top"
+              : "h-full max-h-screen w-auto max-w-full cursor-zoom-in object-contain",
+          )}
+        />
+      </div>
+
+      {urls.length > 1 && (
+        <div
+          className="absolute inset-x-0 bottom-6 flex items-center justify-center gap-4"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => setI((v) => Math.max(0, v - 1))}
+            disabled={i === 0}
+            aria-label="Previous photo"
+            className="flex size-10 items-center justify-center rounded-full border border-border bg-background/80 disabled:opacity-40"
+          >
+            <ChevronLeft className="size-5" />
+          </button>
+          <span className="text-sm font-semibold">
+            {i + 1} / {urls.length}
+          </span>
+          <button
+            onClick={() => setI((v) => Math.min(urls.length - 1, v + 1))}
+            disabled={i === urls.length - 1}
+            aria-label="Next photo"
+            className="flex size-10 items-center justify-center rounded-full border border-border bg-background/80 disabled:opacity-40"
+          >
+            <ChevronRight className="size-5" />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /** Swipeable gallery of up to 3 photos, used on listing detail pages. */
 export function ListingGallery({ paths, alt }: { paths: string[]; alt: string }) {
   const [urls, setUrls] = useState<string[]>([]);
   const [index, setIndex] = useState(0);
   const [resolving, setResolving] = useState(paths.length > 0);
   const [loaded, setLoaded] = useState<Record<string, boolean>>({});
+  const [open, setOpen] = useState(false);
   const key = paths.join("|");
 
   useEffect(() => {
@@ -177,7 +268,13 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
         }}
       >
         {urls.map((u, i) => (
-          <div key={u} className="relative aspect-[4/3] w-full shrink-0 snap-center bg-secondary">
+          <button
+            key={u}
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label={`View photo ${i + 1} full size`}
+            className="relative aspect-[4/3] w-full shrink-0 snap-center cursor-zoom-in bg-secondary"
+          >
             {!loaded[u] && <Skeleton className="absolute inset-0 h-full w-full rounded-none" />}
             <img
               src={u}
@@ -191,9 +288,12 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
               width={800}
               height={600}
             />
-          </div>
+          </button>
         ))}
       </div>
+      <span className="pointer-events-none absolute right-3 top-3 flex items-center gap-1 rounded-full bg-background/80 px-2 py-1 text-[11px] font-semibold backdrop-blur">
+        <Maximize2 className="size-3" /> Tap to enlarge
+      </span>
       {urls.length > 1 && (
         <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1.5">
           {urls.map((u, i) => (
@@ -207,9 +307,13 @@ export function ListingGallery({ paths, alt }: { paths: string[]; alt: string })
           ))}
         </div>
       )}
+      {open && (
+        <Lightbox urls={urls} index={index} alt={alt} onClose={() => setOpen(false)} />
+      )}
     </div>
   );
 }
+
 
 export function ListingCard({ listing }: { listing: FeedListing }) {
   const { user } = useAuth();
