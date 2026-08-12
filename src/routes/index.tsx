@@ -36,10 +36,26 @@ export const Route = createFileRoute("/")({
 
 const PAGE_SIZE = 12;
 
+const SORTS = {
+  new: { label: "Newest", column: "created_at", ascending: false },
+  popular: { label: "Most viewed", column: "view_count", ascending: false },
+  cheap: { label: "Lowest price", column: "price", ascending: true },
+} as const;
+type SortKey = keyof typeof SORTS;
+
 function Feed() {
   const { profile } = useAuth();
   const [scope, setScope] = useState<"near" | "all">("near");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortKey>("new");
+  const [showTop, setShowTop] = useState(false);
+
+  // "Back to top" appears once the reader is a few screens deep.
+  useEffect(() => {
+    const onScroll = () => setShowTop(window.scrollY > 1200);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
