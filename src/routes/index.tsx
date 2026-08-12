@@ -215,7 +215,28 @@ function Feed() {
             </button>
           ))}
         </div>
+        {/* Sort control so shoppers can chase price or popularity, not just recency. */}
+        <div className="mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Sort
+          </span>
+          {(Object.keys(SORTS) as SortKey[]).map((k) => (
+            <button
+              key={k}
+              onClick={() => setSort(k)}
+              className={cn(
+                "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
+                sort === k
+                  ? "border-primary text-primary"
+                  : "border-border text-muted-foreground",
+              )}
+            >
+              {SORTS[k].label}
+            </button>
+          ))}
+        </div>
       </section>
+
 
       {/* One-tap category rail so browsing doesn't need the filter sheet. */}
       <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
