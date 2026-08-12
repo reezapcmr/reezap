@@ -7,7 +7,7 @@ import { ListingCard, ListingCardSkeleton, type FeedListing } from "@/components
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { MapPin, RefreshCw, SlidersHorizontal } from "lucide-react";
+import { ArrowUp, MapPin, RefreshCw, SlidersHorizontal } from "lucide-react";
 import { LISTING_SELECT } from "@/lib/reezap";
 import { toast } from "sonner";
 
