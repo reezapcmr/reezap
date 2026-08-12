@@ -79,12 +79,13 @@ function Feed() {
     isFetchingNextPage,
 
   } = useInfiniteQuery({
-    queryKey: ["feed", townId, categoryId],
+    queryKey: ["feed", townId, categoryId, sort],
     initialPageParam: 0,
     getNextPageParam: (last: FeedListing[], pages) =>
       last.length < PAGE_SIZE ? undefined : pages.length * PAGE_SIZE,
     queryFn: async ({ pageParam }) => {
       const from = pageParam as number;
+      const s = SORTS[sort];
       let q = supabase
         .from("listings")
         .select(LISTING_SELECT)
@@ -92,7 +93,7 @@ function Feed() {
         .gt("expires_at", new Date().toISOString())
         // Premium pinned posts ride at the top.
         .order("is_pinned", { ascending: false })
-        .order("created_at", { ascending: false })
+        .order(s.column, { ascending: s.ascending, nullsFirst: false })
         .range(from, from + PAGE_SIZE - 1);
       if (townId) q = q.eq("town_id", townId);
       if (categoryId) q = q.eq("category_id", categoryId);
