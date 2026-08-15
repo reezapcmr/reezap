@@ -4,7 +4,25 @@ export type ListingStatus = "in_stock" | "sold_out_today";
 
 /** Columns on `profiles` that unauthenticated visitors are allowed to read. */
 export const PROFILE_PUBLIC_COLS =
-  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,is_vendor,is_verified,is_premium,created_at";
+  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,is_vendor,is_verified,phone_verified_at,is_premium,created_at";
+
+/** Reezap's WhatsApp number used for free code-based phone verification. */
+export const REEZAP_WHATSAPP_NUMBER =
+  (import.meta.env["VITE_REEZAP_WHATSAPP"] as string | undefined) ?? "+237670000000";
+
+/** Pre-filled wa.me link carrying the user's verification code. */
+export function whatsappVerifyLink(code: string) {
+  const digits = REEZAP_WHATSAPP_NUMBER.replace(/[^0-9]/g, "");
+  return `https://wa.me/${digits}?text=${encodeURIComponent(`My Reezap code is ${code}`)}`;
+}
+
+/** Trust badge: earned through admin ID review or free WhatsApp verification. */
+export function isTrusted(
+  p: { is_verified?: boolean | null; phone_verified_at?: string | null } | null | undefined,
+) {
+  return !!(p?.is_verified || p?.phone_verified_at);
+}
+
 
 export const MAX_LISTING_PHOTOS = 3;
 export const MAX_DESCRIPTION_WORDS = 50;
