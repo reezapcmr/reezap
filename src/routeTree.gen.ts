@@ -24,6 +24,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UUsernameRouteImport } from './routes/u.$username'
 import { Route as ListingIdRouteImport } from './routes/listing.$id'
+import { Route as ApiPublicHooksWhatsappRouteImport } from './routes/api/public/hooks/whatsapp'
 import { Route as ApiPublicHooksCleanupExpiredRouteImport } from './routes/api/public/hooks/cleanup-expired'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -101,6 +102,11 @@ const ListingIdRoute = ListingIdRouteImport.update({
   path: '/listing/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksWhatsappRoute = ApiPublicHooksWhatsappRouteImport.update({
+  id: '/api/public/hooks/whatsapp',
+  path: '/api/public/hooks/whatsapp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksCleanupExpiredRoute =
   ApiPublicHooksCleanupExpiredRouteImport.update({
     id: '/api/public/hooks/cleanup-expired',
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
   '/api/public/hooks/cleanup-expired': typeof ApiPublicHooksCleanupExpiredRoute
+  '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
   '/api/public/hooks/cleanup-expired': typeof ApiPublicHooksCleanupExpiredRoute
+  '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -162,6 +170,7 @@ export interface FileRoutesById {
   '/listing/$id': typeof ListingIdRoute
   '/u/$username': typeof UUsernameRoute
   '/api/public/hooks/cleanup-expired': typeof ApiPublicHooksCleanupExpiredRoute
+  '/api/public/hooks/whatsapp': typeof ApiPublicHooksWhatsappRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -182,6 +191,7 @@ export interface FileRouteTypes {
     | '/listing/$id'
     | '/u/$username'
     | '/api/public/hooks/cleanup-expired'
+    | '/api/public/hooks/whatsapp'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -200,6 +210,7 @@ export interface FileRouteTypes {
     | '/listing/$id'
     | '/u/$username'
     | '/api/public/hooks/cleanup-expired'
+    | '/api/public/hooks/whatsapp'
   id:
     | '__root__'
     | '/'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/listing/$id'
     | '/u/$username'
     | '/api/public/hooks/cleanup-expired'
+    | '/api/public/hooks/whatsapp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -237,6 +249,7 @@ export interface RootRouteChildren {
   ListingIdRoute: typeof ListingIdRoute
   UUsernameRoute: typeof UUsernameRoute
   ApiPublicHooksCleanupExpiredRoute: typeof ApiPublicHooksCleanupExpiredRoute
+  ApiPublicHooksWhatsappRoute: typeof ApiPublicHooksWhatsappRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -346,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ListingIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/whatsapp': {
+      id: '/api/public/hooks/whatsapp'
+      path: '/api/public/hooks/whatsapp'
+      fullPath: '/api/public/hooks/whatsapp'
+      preLoaderRoute: typeof ApiPublicHooksWhatsappRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/cleanup-expired': {
       id: '/api/public/hooks/cleanup-expired'
       path: '/api/public/hooks/cleanup-expired'
@@ -373,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   ListingIdRoute: ListingIdRoute,
   UUsernameRoute: UUsernameRoute,
   ApiPublicHooksCleanupExpiredRoute: ApiPublicHooksCleanupExpiredRoute,
+  ApiPublicHooksWhatsappRoute: ApiPublicHooksWhatsappRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
