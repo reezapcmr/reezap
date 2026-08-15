@@ -1,6 +1,19 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BadgeCheck, Bookmark, Eye, Heart, ImageIcon, MapPin, Pin, Share2 } from "lucide-react";
+import {
+  BadgeCheck,
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Heart,
+  ImageIcon,
+  MapPin,
+  Maximize2,
+  Pin,
+  Share2,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useToggleActivity, useViewerActivity } from "@/hooks/use-viewer-activity";
 import { cn } from "@/lib/utils";
