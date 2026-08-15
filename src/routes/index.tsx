@@ -189,79 +189,33 @@ function Feed() {
           </div>
         }
       />
-      <section className="border-b border-border px-4 py-5">
-        <h1 className="text-2xl font-extrabold leading-tight">
-          What's fresh <span className="text-primary">near you</span>
-        </h1>
-        <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="size-3.5" />
-          {profile?.town_id && scope === "near"
-            ? "Showing your town first"
-            : "South West Region, Cameroon"}
-        </p>
-        <div className="mt-4 flex gap-2">
+      <section className="border-b border-border px-4 py-3">
+        {/* Segmented scope switch */}
+        <div className="relative flex rounded-full bg-secondary p-1">
+          <span
+            aria-hidden
+            className={cn(
+              "absolute inset-y-1 w-[calc(50%-0.25rem)] rounded-full bg-primary transition-transform duration-300 ease-out",
+              scope === "all" && "translate-x-[calc(100%+0.5rem)]",
+            )}
+          />
           {(["near", "all"] as const).map((s) => (
             <button
               key={s}
               onClick={() => setScope(s)}
+              aria-pressed={scope === s}
               className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-semibold transition-colors",
-                scope === s
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-muted-foreground",
+                "relative z-10 flex flex-1 items-center justify-center gap-1.5 rounded-full py-2 text-sm font-semibold transition-colors",
+                scope === s ? "text-primary-foreground" : "text-muted-foreground",
               )}
             >
+              {s === "near" && <MapPin className="size-3.5" />}
               {s === "near" ? "Near me" : "Whole region"}
-            </button>
-          ))}
-        </div>
-        {/* Sort control so shoppers can chase price or popularity, not just recency. */}
-        <div className="mt-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Sort
-          </span>
-          {(Object.keys(SORTS) as SortKey[]).map((k) => (
-            <button
-              key={k}
-              onClick={() => setSort(k)}
-              className={cn(
-                "shrink-0 rounded-full border px-3 py-1 text-xs font-semibold transition-colors",
-                sort === k
-                  ? "border-primary text-primary"
-                  : "border-border text-muted-foreground",
-              )}
-            >
-              {SORTS[k].label}
             </button>
           ))}
         </div>
       </section>
 
-
-      {/* One-tap category rail so browsing doesn't need the filter sheet. */}
-      <div className="no-scrollbar flex gap-2 overflow-x-auto border-b border-border px-4 py-3">
-        <button
-          onClick={() => setCategoryId(null)}
-          className={cn(
-            "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm font-medium",
-            !categoryId ? "border-primary text-primary" : "text-muted-foreground",
-          )}
-        >
-          All
-        </button>
-        {categories?.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setCategoryId(categoryId === c.id ? null : c.id)}
-            className={cn(
-              "shrink-0 rounded-full border border-border px-3.5 py-1.5 text-sm font-medium",
-              categoryId === c.id ? "border-primary text-primary" : "text-muted-foreground",
-            )}
-          >
-            {c.emoji} {c.name}
-          </button>
-        ))}
-      </div>
 
 
 
