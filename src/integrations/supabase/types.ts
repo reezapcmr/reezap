@@ -385,6 +385,44 @@ export type Database = {
           },
         ]
       }
+      phone_verifications: {
+        Row: {
+          code: string
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          phone: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          phone: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          phone?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "phone_verifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -400,6 +438,7 @@ export type Database = {
           notify_follows: boolean
           notify_likes: boolean
           notify_moderation: boolean
+          phone_verified_at: string | null
           premium_until: string | null
           town_id: string | null
           updated_at: string
@@ -421,6 +460,7 @@ export type Database = {
           notify_follows?: boolean
           notify_likes?: boolean
           notify_moderation?: boolean
+          phone_verified_at?: string | null
           premium_until?: string | null
           town_id?: string | null
           updated_at?: string
@@ -442,6 +482,7 @@ export type Database = {
           notify_follows?: boolean
           notify_likes?: boolean
           notify_moderation?: boolean
+          phone_verified_at?: string | null
           premium_until?: string | null
           town_id?: string | null
           updated_at?: string
@@ -640,6 +681,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_phone_verification: {
+        Args: { p_code: string; p_from_phone?: string }
+        Returns: string
+      }
       get_vendor_whatsapp: { Args: { p_user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -657,6 +702,13 @@ export type Database = {
         Returns: undefined
       }
       repost_listing: { Args: { p_listing_id: string }; Returns: undefined }
+      start_phone_verification: {
+        Args: { p_phone: string }
+        Returns: {
+          code: string
+          expires_at: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
