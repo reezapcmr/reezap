@@ -1,11 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import logo from "@/assets/reezap-logo.jpg.asset.json";
+
 
 export function Logo({ size = 32, withWordmark = true }: { size?: number; withWordmark?: boolean }) {
   return (
     <Link to="/" className="flex items-center gap-2.5">
       <img
-        src={logo.url}
+        src="/favicon.jpg"
         alt="Reezap"
         width={size}
         height={size}

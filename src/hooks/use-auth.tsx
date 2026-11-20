@@ -68,6 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
       if (next?.user) {
+        try {
+          const dest = sessionStorage.getItem("reezap_post_auth");
+          if (dest) {
+            sessionStorage.removeItem("reezap_post_auth");
+            if (dest !== window.location.pathname) window.location.replace(dest);
+          }
+        } catch {
+          /* ignore */
+        }
         setTimeout(() => void loadProfile(next.user.id), 0);
       } else {
         setProfile(null);
