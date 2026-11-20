@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/public/hooks/whatsapp")({
         for (const m of messages) {
           const code = (m.text?.body ?? "").match(/\b(\d{6})\b/)?.[1];
           if (!code) continue;
-          const from = m.from ? `+${m.from.replace(/[^0-9]/g, "")}` : null;
+          const from = m.from ? `+${m.from.replace(/[^0-9]/g, "")}` : undefined;
           const { data } = await supabaseAdmin.rpc("confirm_phone_verification", {
             p_code: code,
             p_from_phone: from,
