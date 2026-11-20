@@ -84,12 +84,37 @@ export function proximityLabel(
   return "another town";
 }
 
-export function whatsappLink(number: string | null | undefined, title: string) {
+export type OrderMessageOptions = {
+  price?: number | null;
+  place?: string | null;
+  url?: string | null;
+  /** Discount percentage (e.g. 10) or an exact offer amount in FCFA. */
+  offer?: { percent: number } | { amount: number } | null;
+};
+
+/** Builds the structured message buyers send to vendors from a listing. */
+export function orderMessage(title: string, opts: OrderMessageOptions = {}) {
+  const lines = [`Hello! I saw your listing "${title}"${opts.price != null ? ` for ${formatPrice(opts.price)}` : ""} on Reezap.`];
+  if (opts.offer && opts.price != null) {
+    const amount =
+      "percent" in opts.offer
+        ? Math.round((opts.price * (100 - opts.offer.percent)) / 100 / 50) * 50
+        : opts.offer.amount;
+    lines.push(`Would you accept ${formatPrice(amount)}?`);
+  } else {
+    lines.push(`Is it still available${opts.place ? ` in ${opts.place}` : ""}?`);
+  }
+  if (opts.url) lines.push(opts.url);
+  return lines.join("\n");
+}
+
+export function whatsappLink(
+  number: string | null | undefined,
+  title: string,
+  opts: OrderMessageOptions = {},
+) {
   const digits = (number ?? "").replace(/[^0-9]/g, "");
-  const text = encodeURIComponent(
-    `Hello! I saw your listing "${title}" on Reezap. Is it still available?`,
-  );
-  return `https://wa.me/${digits}?text=${text}`;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(orderMessage(title, opts))}`;
 }
 
 /** Normalises a Cameroon phone number to international form, or null if invalid. */
