@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  ImageDown,
   BadgeCheck,
   Eye,
   Flag,
@@ -22,12 +23,14 @@ import {
   isFresh,
   listingShareUrl,
   proximityLabel,
+  resolveMedia,
   shareListing,
   timeAgo,
   whatsappLink,
 } from "@/lib/reezap";
 import { getListingPreview } from "@/lib/listing-share.functions";
 import { useAuth } from "@/hooks/use-auth";
+import { makeStatusFlyer, shareOrDownloadFlyer } from "@/lib/flyer";
 import {
   Dialog,
   DialogContent,
@@ -150,16 +153,54 @@ function ListingPage() {
   }, [listing?.id]);
 
 
-  async function handleOrder() {
+  const [orderOpen, setOrderOpen] = useState(false);
+  const [flyerBusy, setFlyerBusy] = useState(false);
+
+  async function handleOrder(offer: { percent: number } | null) {
     if (!listing || !vendor) return;
-    await supabase.rpc("increment_whatsapp_click", { p_listing_id: listing.id });
+    setOrderOpen(false);
+    // Open the tab synchronously so mobile browsers don't block it as a popup.
+    const win = window.open("", "_blank");
+    void supabase.rpc("increment_whatsapp_click", { p_listing_id: listing.id });
     // Phone numbers are not readable in bulk; fetched one vendor at a time.
     const { data: number } = await supabase.rpc("get_vendor_whatsapp", { p_user_id: vendor.id });
     if (!number) {
+      win?.close();
       toast.error("This vendor hasn't added a WhatsApp number yet");
       return;
     }
-    window.open(whatsappLink(number, listing.title), "_blank", "noopener");
+    const place = [listing.neighborhoods?.name, listing.towns?.name].filter(Boolean).join(", ");
+    const url = whatsappLink(number, listing.title, {
+      price: listing.price,
+      place: place || null,
+      url: listingShareUrl(listing.id),
+      offer,
+    });
+    if (win) win.location.href = url;
+    else window.location.href = url;
+  }
+
+  async function handleFlyer() {
+    if (!listing || !vendor) return;
+    setFlyerBusy(true);
+    try {
+      const first = galleryPaths(listing)[0];
+      const imageUrl = first ? await resolveMedia(first) : null;
+      const blob = await makeStatusFlyer({
+        title: listing.title,
+        price: listing.price,
+        place: [listing.neighborhoods?.name, listing.towns?.name].filter(Boolean).join(", ") || null,
+        vendor: vendor.display_name ?? vendor.username,
+        imageUrl,
+        url: listingShareUrl(listing.id),
+      });
+      const r = await shareOrDownloadFlyer(blob, `reezap-${listing.id.slice(0, 8)}`, `${listing.title} — order on Reezap: ${listingShareUrl(listing.id)}`);
+      if (r === "downloaded") toast.success("Flyer saved — post it to your WhatsApp Status");
+    } catch {
+      toast.error("Could not create the flyer");
+    } finally {
+      setFlyerBusy(false);
+    }
   }
 
   async function handleShare() {
@@ -283,6 +324,16 @@ function ListingPage() {
           <Share2 className="size-4" /> Share this listing
         </button>
 
+        {user?.id === vendor.id && (
+          <button
+            onClick={handleFlyer}
+            disabled={flyerBusy}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-secondary py-3 text-sm font-bold disabled:opacity-60"
+          >
+            <ImageDown className="size-4" /> {flyerBusy ? "Making flyer…" : "Share to WhatsApp Status"}
+          </button>
+        )}
+
         <p className="rounded-lg bg-secondary p-3 text-xs text-muted-foreground">
           Reezap connects you with the vendor. Payment and delivery are arranged directly between
           you two — meet in a public place and check goods before paying.
@@ -325,12 +376,33 @@ function ListingPage() {
 
       <div className="fixed inset-x-0 bottom-16 z-30 px-4 lg:bottom-6 lg:left-60">
         <div className="mx-auto max-w-2xl">
-          <Button
-            onClick={handleOrder}
-            className="w-full rounded-full py-6 text-base font-bold shadow-glow"
-          >
-            <MessageCircle className="mr-2 size-5" /> Order on WhatsApp
-          </Button>
+          <Dialog open={orderOpen} onOpenChange={setOrderOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full rounded-full py-6 text-base font-bold shadow-glow">
+                <MessageCircle className="mr-2 size-5" /> Order on WhatsApp
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Message the vendor</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-2">
+                <Button onClick={() => handleOrder(null)} className="rounded-full font-bold">
+                  Ask if it's available
+                </Button>
+                {listing.price != null && (
+                  <>
+                    <Button variant="secondary" onClick={() => handleOrder({ percent: 10 })} className="rounded-full">
+                      Offer 10% less
+                    </Button>
+                    <Button variant="secondary" onClick={() => handleOrder({ percent: 15 })} className="rounded-full">
+                      Offer 15% less
+                    </Button>
+                  </>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </AppShell>
