@@ -163,11 +163,15 @@ async function flushBatch(bucket: string) {
 
   let signed = new Map<string, string | null>();
   try {
-    const { signMedia } = await import("@/lib/media-sign.functions");
-    const data = await signMedia({
-      data: { bucket: bucket as "listing-media" | "avatars", paths: batch.paths },
-    });
-    signed = new Map(data.map((d) => [d.path, d.signedUrl]));
+    if (bucket === "listing-media" || bucket === "avatars") {
+      const { signMedia } = await import("@/lib/media-sign.functions");
+      const data = await signMedia({ data: { bucket, paths: batch.paths } });
+      signed = new Map(data.map((d) => [d.path, d.signedUrl]));
+    } else {
+      // Private buckets (e.g. ID documents) are signed with the viewer's own access rules.
+      const { data } = await supabase.storage.from(bucket).createSignedUrls(batch.paths, 3600);
+      signed = new Map((data ?? []).map((d) => [d.path ?? "", d.signedUrl ?? null]));
+    }
   } catch {
     // fall through: everyone resolves to null and falls back to a placeholder
   }
