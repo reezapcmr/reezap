@@ -4,7 +4,7 @@ export type ListingStatus = "in_stock" | "sold_out_today";
 
 /** Columns on `profiles` that unauthenticated visitors are allowed to read. */
 export const PROFILE_PUBLIC_COLS =
-  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,is_vendor,is_verified,phone_verified_at,is_premium,created_at";
+  "id,username,display_name,avatar_url,bio,town_id,neighborhood_id,is_vendor,is_verified,phone_verified_at,is_premium,follower_count,created_at";
 
 /** Reezap's WhatsApp number used for free code-based phone verification. */
 export const REEZAP_WHATSAPP_NUMBER =
@@ -163,8 +163,11 @@ async function flushBatch(bucket: string) {
 
   let signed = new Map<string, string | null>();
   try {
-    const { data } = await supabase.storage.from(bucket).createSignedUrls(batch.paths, 3600);
-    signed = new Map((data ?? []).map((d) => [d.path ?? "", d.signedUrl ?? null]));
+    const { signMedia } = await import("@/lib/media-sign.functions");
+    const data = await signMedia({
+      data: { bucket: bucket as "listing-media" | "avatars", paths: batch.paths },
+    });
+    signed = new Map(data.map((d) => [d.path, d.signedUrl]));
   } catch {
     // fall through: everyone resolves to null and falls back to a placeholder
   }
@@ -250,7 +253,7 @@ export async function stripExif(file: File): Promise<Blob> {
 
 /** Shared PostgREST projection for feed-style listing cards. */
 export const LISTING_SELECT =
-  "id,title,description,price,media_url,media_urls,status,created_at,expires_at,is_pinned,view_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),likes(count),profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,phone_verified_at)";
+  "id,title,description,price,media_url,media_urls,status,created_at,expires_at,is_pinned,view_count,town_id,neighborhood_id,towns(name,division),neighborhoods(name),categories(name,emoji),like_count,profiles!listings_vendor_id_fkey(id,username,display_name,avatar_url,is_verified,phone_verified_at)";
 
 /** Canonical, shareable public URL for a listing. */
 export const SITE_URL = "https://reezap.lovable.app";

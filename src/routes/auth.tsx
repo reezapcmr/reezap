@@ -108,12 +108,10 @@ function AuthPage() {
           toast.error("Enter a valid Cameroon WhatsApp number, e.g. 6 70 00 00 00");
           return;
         }
-        const { data: taken } = await supabase
-          .from("profiles")
-          .select("id")
-          .eq("username", handle)
-          .maybeSingle();
-        if (taken) {
+        const { data: available } = await supabase.rpc("is_username_available", {
+          p_username: handle,
+        });
+        if (available === false) {
           toast.error("That username is already taken");
           return;
         }

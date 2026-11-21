@@ -43,7 +43,7 @@ function VendorProfile() {
       const { data } = await supabase
         .from("profiles")
         .select(
-          "id,username,display_name,avatar_url,bio,is_vendor,is_verified,created_at,towns(name,division),neighborhoods(name)",
+          "id,username,display_name,avatar_url,bio,is_vendor,is_verified,follower_count,created_at,towns(name,division),neighborhoods(name)",
         )
         .eq("username", username)
         .maybeSingle();
@@ -81,11 +81,8 @@ function VendorProfile() {
     queryKey: ["follow", vendor?.id, user?.id],
     enabled: !!vendor?.id,
     queryFn: async () => {
-      const [{ count }, { data: mine }] = await Promise.all([
-        supabase
-          .from("follows")
-          .select("follower_id", { count: "exact", head: true })
-          .eq("vendor_id", vendor!.id),
+      const [{ data: fc }, { data: mine }] = await Promise.all([
+        supabase.from("profiles").select("follower_count").eq("id", vendor!.id).maybeSingle(),
         user
           ? supabase
               .from("follows")
@@ -95,7 +92,7 @@ function VendorProfile() {
               .maybeSingle()
           : Promise.resolve({ data: null }),
       ]);
-      return { count: count ?? 0, following: !!mine };
+      return { count: fc?.follower_count ?? 0, following: !!mine };
     },
   });
 

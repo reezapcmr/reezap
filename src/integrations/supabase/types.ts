@@ -212,6 +212,7 @@ export type Database = {
           id: string
           is_flagged: boolean
           is_pinned: boolean
+          like_count: number
           media_type: string
           media_url: string | null
           media_urls: string[]
@@ -234,6 +235,7 @@ export type Database = {
           id?: string
           is_flagged?: boolean
           is_pinned?: boolean
+          like_count?: number
           media_type?: string
           media_url?: string | null
           media_urls?: string[]
@@ -256,6 +258,7 @@ export type Database = {
           id?: string
           is_flagged?: boolean
           is_pinned?: boolean
+          like_count?: number
           media_type?: string
           media_url?: string | null
           media_urls?: string[]
@@ -429,6 +432,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          follower_count: number
           id: string
           is_premium: boolean
           is_vendor: boolean
@@ -451,6 +455,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          follower_count?: number
           id: string
           is_premium?: boolean
           is_vendor?: boolean
@@ -473,6 +478,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          follower_count?: number
           id?: string
           is_premium?: boolean
           is_vendor?: boolean
@@ -701,6 +707,7 @@ export type Database = {
         Args: { p_listing_id: string }
         Returns: undefined
       }
+      is_username_available: { Args: { p_username: string }; Returns: boolean }
       repost_listing: { Args: { p_listing_id: string }; Returns: undefined }
       start_phone_verification: {
         Args: { p_phone: string }

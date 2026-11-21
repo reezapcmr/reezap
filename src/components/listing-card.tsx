@@ -55,7 +55,7 @@ export type FeedListing = {
     avatar_url: string | null;
     is_verified: boolean;
   } | null;
-  likes?: { count: number }[];
+  like_count?: number;
 };
 
 function Placeholder({ className }: { className?: string }) {
@@ -338,7 +338,7 @@ export function ListingCard({ listing }: { listing: FeedListing }) {
 
   const saved = activity.bookmarks.has(listing.id);
   const liked = activity.likes.has(listing.id);
-  const likes = Math.max(0, (listing.likes?.[0]?.count ?? 0) + likeDelta);
+  const likes = Math.max(0, (listing.like_count ?? 0) + likeDelta);
 
   function toggle(kind: "bookmarks" | "likes", on: boolean) {
     if (!user) {
